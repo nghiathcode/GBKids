@@ -1,0 +1,3 @@
+include ':mobile', ':tv', ':gblibrary', ':gbyoutubelibrary'
+project(':gblibrary').projectDir = new File(settingsDir, '../gblibrary')
+project(':gbyoutubelibrary').projectDir = new File(settingsDir, '../gbyoutubelibrary')
