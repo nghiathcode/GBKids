@@ -11,8 +11,11 @@ import vn.android.thn.gbkids.App
 import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.presenter.NewVideoPresenter
+import vn.android.thn.gbkids.views.activity.MainActivity
 import vn.android.thn.gbkids.views.activity.VideoPlayerActivity
 import vn.android.thn.gbkids.views.adapter.NewListAdapter
+import vn.android.thn.gbkids.views.view.ToolBarView
+import vn.android.thn.gbkids.views.view.ToolBarViewType
 import vn.android.thn.gbyoutubelibrary.entity.ItemSearchEntity
 import vn.android.thn.gbyoutubelibrary.entity.SearchEntity
 import vn.android.thn.library.utils.GBLog
@@ -53,6 +56,7 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
         mListView = findViewById<RecyclerView>(R.id.list)!!
         swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)!!
         mListView.adapter = adapter
+        adapter.notifyDataSetChanged()
         val mLayoutManager = LinearLayoutManager(activity!!)
         mListView.setLayoutManager(mLayoutManager)
         mListView.setItemAnimator(DefaultItemAnimator())
@@ -73,6 +77,13 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
         })
     }
 
+    override fun toolBarViewMode(): ToolBarView {
+        return ToolBarView.AUTO_HIDE
+    }
+
+    override fun showToolBarViewType(): ToolBarViewType {
+        return ToolBarViewType.NORMAL
+    }
     override fun loadData() {
         if (!firstLoad){
             presenter.loadNew()
@@ -87,9 +98,12 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
     }
 
     override fun layoutFileResourceContent(): Int {
+//        return R.layout.fragment_new_list
+        return  -1
+    }
+    override fun layoutFileResourceCommon(): Int {
         return R.layout.fragment_new_list
     }
-
     override fun onSearch(result: MutableList<VideoTable>) {
         firstLoad = true
         swipeRefreshLayout.isRefreshing = false

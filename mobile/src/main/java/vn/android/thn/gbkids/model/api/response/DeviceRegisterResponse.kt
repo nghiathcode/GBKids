@@ -14,10 +14,15 @@ import vn.android.thn.gbyoutubelibrary.entity.SearchEntity
 class DeviceRegisterResponse:GBTubeResponse() {
     var data: MutableList<VideoTable> = ArrayList<VideoTable>()
     override fun onJsonData(data: JSONObject) {
-        if (has(data,"token")){
-               var setting = AppSetting()
-            setting.token = data.getString("token")
-            GBDataBase.insert(setting)
+        var setting = AppSetting()
+        if (has(data,"appID")){
+            setting.appID =   data.getString("appID")
         }
+        if (has(data,"token")){
+            setting.token = data.getString("token")
+        }
+        GBDataBase.deleteTable(AppSetting::class.java)
+        GBDataBase.resetSeq(AppSetting::class.java)
+        GBDataBase.insert(setting)
     }
 }

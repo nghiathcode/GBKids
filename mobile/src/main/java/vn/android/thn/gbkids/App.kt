@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.os.Build
 import android.provider.Settings
 import android.support.multidex.MultiDex
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import com.activeandroid.ActiveAndroid
 
@@ -50,6 +51,7 @@ class App : Application() {
             // get browser user agent
             if( sBrowserUserAgent == null) {
                 var  web = WebView(INSTANCE_);
+//                web.setWebChromeClient(WebChromeClient())
                 sBrowserUserAgent = web.getSettings().getUserAgentString();
             }
 

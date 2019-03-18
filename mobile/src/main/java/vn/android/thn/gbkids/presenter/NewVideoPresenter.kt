@@ -1,6 +1,8 @@
 package vn.android.thn.gbkids.presenter
 
 import android.support.v4.app.FragmentActivity
+import vn.android.thn.gbkids.constants.ResponseCode
+import vn.android.thn.gbkids.model.api.GBRequestName
 import vn.android.thn.gbkids.model.api.GBTubeRequestCallBack
 import vn.android.thn.gbkids.model.api.request.GBTubeRequest
 import vn.android.thn.gbkids.model.api.response.GBTubeResponse
@@ -22,12 +24,12 @@ class NewVideoPresenter(mvp: SearchMvp, mActivity: FragmentActivity?) :
         if (isShowPopup) {
             showLoading()
         }
-        val api = GBTubeRequest("new",mActivity!!)
-        val param = SearchParam("kids song")
+        val api = GBTubeRequest(GBRequestName.NEW,mActivity!!)
+//        val param = SearchParam("kids song")
 //        param.type = "video"
 //        param.order ="date"
-        param.pageToken = nextPageToken
-        api.mParameters = param.toParamRequest()
+//        param.pageToken = nextPageToken
+//        api.mParameters = param.toParamRequest()
         api.get().execute(object : GBTubeRequestCallBack {
             override fun onRequestError(errorRequest: GBRequestError, request: GBTubeRequest) {
                 if (isShowPopup) {
@@ -37,12 +39,32 @@ class NewVideoPresenter(mvp: SearchMvp, mActivity: FragmentActivity?) :
 
             override fun onResponse(httpCode: Int, response: GBTubeResponse, request: GBTubeRequest) {
 
-                mMvp!!.onSearch(response.toResponse(NewResponse::class)!!.data)
-                if (isShowPopup) {
-                    hideLoading()
+
+                val result = response.toResponse(NewResponse::class)!!
+                if (result!!.error.errorCode == ResponseCode.NO_ERROR){
+                    mMvp!!.onSearch(result.data)
+                    if (isShowPopup) {
+                        hideLoading()
+                    }
+                } else if (result!!.error.errorCode == ResponseCode.TOKEN_EXPIRED){
+                    refreshToken(request.mRequestName)
+                } else{
+                    if (isShowPopup) {
+                        hideLoading()
+                    }
                 }
+
             }
         })
+
+    }
+
+    override fun onRefreshComplete(requestName: String) {
+        if (requestName.equals(GBRequestName.NEW,true)){
+            loadNew(true)
+        } else {
+            hideLoading()
+        }
 
     }
     interface SearchMvp : MVPBase {

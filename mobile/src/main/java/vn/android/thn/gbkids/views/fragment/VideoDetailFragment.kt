@@ -1,12 +1,12 @@
 package vn.android.thn.gbkids.views.fragment
 
 import android.net.Uri
-import android.os.Handler
+import android.util.SparseArray
 import android.view.View
+import at.huber.youtubeExtractor.VideoMeta
+import at.huber.youtubeExtractor.YouTubeExtractor
+import at.huber.youtubeExtractor.YtFile
 import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView
-import com.google.android.exoplayer2.audio.AudioRendererEventListener
-import com.google.android.exoplayer2.decoder.DecoderCounters
 import com.google.android.exoplayer2.drm.FrameworkMediaDrm
 import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
@@ -17,7 +17,6 @@ import com.google.android.exoplayer2.source.MediaSource
 import vn.android.thn.gbfilm.views.listener.YoutubeStreamListener
 import com.google.android.exoplayer2.source.LoopingMediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
-import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
 import com.google.android.exoplayer2.ui.DebugTextViewHelper
 import com.google.android.exoplayer2.ui.PlayerControlView
@@ -28,10 +27,11 @@ import vn.android.thn.gbfilm.views.dialogs.YoutubeDialog
 import vn.android.thn.gbkids.R
 
 import vn.android.thn.gbkids.utils.LogUtils
-import java.io.IOException
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import vn.android.thn.gbkids.views.activity.MainActivity
+import vn.android.thn.gbkids.views.view.ToolBarView
 import vn.android.thn.library.utils.GBUtils
 
 
@@ -41,6 +41,10 @@ import vn.android.thn.library.utils.GBUtils
 
 class VideoDetailFragment : BaseFragment(), YoutubeStreamListener, PlaybackPreparer,
     PlayerControlView.VisibilityListener {
+    override fun layoutFileResourceCommon(): Int {
+        return R.layout.fragment_video_detail
+    }
+
     override fun preparePlayback() {
 
     }
@@ -119,15 +123,49 @@ class VideoDetailFragment : BaseFragment(), YoutubeStreamListener, PlaybackPrepa
     }
 
     override fun loadData() {
-        app.loadStream(videoId)
+//        app.loadStream(videoId)
+        getYoutubeDownloadUrl("https://www.youtube.com/watch?v="+videoId)
     }
 
+    private fun getYoutubeDownloadUrl(youtubeLink: String) {
+        object : YouTubeExtractor(activity!!) {
 
+            public override fun onExtractionComplete(ytFiles: SparseArray<YtFile>?, vMeta: VideoMeta) {
+//                mainProgressBar.setVisibility(View.GONE)
 
-    override fun layoutFileResourceContent(): Int {
-        return R.layout.fragment_video_detail
+                if (ytFiles == null) {
+                    // Something went wrong we got no urls. Always check this.
+//                    finish()
+                    return
+                }
+                // Iterate over itags
+                var i = 0
+                var itag: Int
+                var lstUrl : MutableList<String> = ArrayList<String>()
+                var firstLoadURL = false
+                while (i < ytFiles.size()) {
+                    itag = ytFiles.keyAt(i)
+                    // ytFile represents one file with its url and meta data
+                    val ytFile = ytFiles.get(itag)
+
+                    // Just add videos in a decent format => height -1 = audio
+                    if (ytFile.format.height == -1 || ytFile.format.height >= 360) {
+//                        addButtonToMainLayout(vMeta.title, ytFile)
+                        LogUtils.info("URL_STREAM_"+ytFile.format.height+":",ytFile.url)
+                        lstUrl.add(ytFile.url)
+
+                        if(!firstLoadURL){
+                            firstLoadURL = true
+                            play(ytFile.url)
+                        }
+
+                    }
+                    i++
+                }
+
+            }
+        }.extract(youtubeLink, true, false)
     }
-
     fun play(streamVideo: String) {
         initializePlayer(streamVideo)
     }
@@ -138,10 +176,13 @@ class VideoDetailFragment : BaseFragment(), YoutubeStreamListener, PlaybackPrepa
 //            shouldAutoPlay = player!!.playWhenReady
             player!!.release()
             player = null
-            trackSelector = null
+//            trackSelector = null
         }
     }
 
+    override fun toolBarViewMode(): ToolBarView {
+        return ToolBarView.HIDE
+    }
     override fun onDestroy() {
         super.onDestroy()
         releasePlayer()

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+    <android.support.design.widget.AppBarLayout
+            android:id="@+id/top_navi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:fitsSystemWindows="true"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:elevation="0dp">
+
+        <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/colorPrimary"
+                app:popupTheme="@style/PopUpTheme"
+                app:contentInsetStart="0dp">
+            <RelativeLayout
+                    android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:visibility="visible">
+                <ImageView
+                        android:layout_width="wrap_content" android:layout_height="match_parent"
+                        android:id="@+id/mn_action_search"
+                        android:layout_marginTop="@dimen/margin_10"
+                        android:layout_marginBottom="@dimen/margin_10"
+                        android:adjustViewBounds="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginRight="@dimen/margin_10"
+                        android:src="@drawable/ico_mn_search"
+                        android:layout_alignParentRight="true"
+                />
+                <RelativeLayout
+                        android:id="@+id/view_search_bar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="@dimen/margin_5"
+                        android:layout_marginBottom="@dimen/margin_5"
+                        android:visibility="visible"
+                        android:background="@drawable/background_radius_white">
+                    <EditText
+                            android:id="@+id/ed_key_word"
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:background="@color/txt_white"
+                            android:layout_centerVertical="true"
+                            android:textColor="@color/txt_black"
+                            android:maxLines="1"
+                            android:inputType="text"
+                            android:singleLine="true"
+                            android:imeOptions="actionSearch"/>
+
+
+                </RelativeLayout>
+            </RelativeLayout>
+
+
+        </android.support.v7.widget.Toolbar>
+    </android.support.design.widget.AppBarLayout>
+
+</merge>

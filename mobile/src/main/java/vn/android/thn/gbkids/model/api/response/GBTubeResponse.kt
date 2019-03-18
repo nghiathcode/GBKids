@@ -1,9 +1,11 @@
 package vn.android.thn.gbkids.model.api.response
 
+import com.google.gson.Gson
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import vn.android.thn.gbkids.App
+import vn.android.thn.gbkids.model.entity.ErrorResponseEntity
 import vn.android.thn.library.net.GBResponseType
 import vn.android.thn.library.utils.GBLog
 import vn.android.thn.library.utils.GBUtils
@@ -20,7 +22,7 @@ open class GBTubeResponse() {
     lateinit var responseType: GBResponseType
     lateinit var dataResponse: String
     var app = App.getInstance()
-
+    lateinit var error:ErrorResponseEntity
     init {
 
     }
@@ -28,6 +30,7 @@ open class GBTubeResponse() {
     constructor(response: String, responseType: GBResponseType) : this() {
         this.dataResponse = response
         this.responseType = responseType
+        error = ErrorResponseEntity()
     }
 
     open fun <T : GBTubeResponse> toResponse(clazz: KClass<out T>, callBackError: Any? = null): T? {
@@ -36,6 +39,7 @@ open class GBTubeResponse() {
             response = clazz.createInstance()
             response.dataResponse = dataResponse
             response.responseType = responseType
+            response.error = error
             response.parser()
             return response
         } catch (e: InstantiationException) {
@@ -71,20 +75,18 @@ open class GBTubeResponse() {
                 val dataJson = JSONTokener(dataResponse).nextValue()
                 if (dataJson is JSONObject) {
                     if (has(dataJson, "error")) {
-                        var error = dataJson.getJSONObject("error")
-                        if (has(error, "errorCode")) {
-                            if (error.getInt("errorCode") == 100) {
-                                if (has(dataJson, "data")) {
-                                    var data = dataJson.get("data")
-                                    if (data is JSONObject) {
-                                        onJsonData(data)
-                                    } else if (data is JSONArray) {
-                                        onJsonArrayData(data)
-                                    }
+                        error = Gson().fromJson<ErrorResponseEntity>(dataJson.get("error").toString(),ErrorResponseEntity::class.java)
+                        if (error.errorCode == 100){
+                            if (has(dataJson, "data")) {
+                                var data = dataJson.get("data")
+                                if (data is JSONObject) {
+                                    onJsonData(data)
+                                } else if (data is JSONArray) {
+                                    onJsonArrayData(data)
                                 }
-                            } else {
-                                onErrorData(error)
                             }
+                        } else {
+                            onErrorData(error)
                         }
                     }
 
@@ -98,7 +100,9 @@ open class GBTubeResponse() {
     }
 
     open fun onJsonData(data: JSONObject) {}
-    open fun onErrorData(data: JSONObject) {}
+    open fun onErrorData(data: ErrorResponseEntity) {
+
+    }
     open fun onJsonArrayData(data: JSONArray) {}
     open fun onTextData(data: String) {}
 }
