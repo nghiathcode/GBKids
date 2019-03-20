@@ -13,9 +13,16 @@
                 android:id="@+id/fragment_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                >
+
+        >
         </RelativeLayout>
-
     </android.support.design.widget.CoordinatorLayout>
+    <thn.android.vn.draggableview.DraggablePanel
+            android:id="@+id/draggable_panel"
+            android:layout_width="match_parent"
+            android:visibility="gone"
+            android:layout_height="match_parent"
+    >
 
+    </thn.android.vn.draggableview.DraggablePanel>
 </android.support.v4.widget.DrawerLayout>

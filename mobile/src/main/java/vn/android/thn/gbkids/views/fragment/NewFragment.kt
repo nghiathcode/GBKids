@@ -29,13 +29,13 @@ import java.util.ArrayList
 
 class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener, LoadMoreListener {
     override fun onLoadMore() {
-        presenter.loadNew(false)
+        presenter.loadNew(offset,false)
     }
-
     override fun onItemClick(obj: Any, pos: Int) {
-        val detail = VideoDetailFragment()
-        detail.videoId = (obj as VideoTable).videoID!!
-        viewManager.pushView(detail)
+//        val detail = VideoDetailFragment()
+//        detail.videoId = (obj as VideoTable).videoID!!
+//        viewManager.pushView(detail)
+        (activity as MainActivity).showPlayer((obj as VideoTable).videoID!!,true)
 //        viewManager.startActivity(VideoPlayerActivity::class.java)
     }
 
@@ -43,6 +43,7 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
     private lateinit var mListView: RecyclerView
     private lateinit var adapter: NewListAdapter
     lateinit var presenter:NewVideoPresenter
+    var offset:Int = -1
     private var list: MutableList<VideoTable> = ArrayList<VideoTable>()
     override fun getTitle(): String {
         return "new video"
@@ -71,7 +72,8 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
             override fun onRefresh() {
                 list.clear()
                 presenter.nextPageToken = ""
-                presenter.loadNew(false)
+                offset =0
+                presenter.loadNew(0,false)
             }
 
         })
@@ -97,39 +99,22 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
         adapter.listener = this
     }
 
-    override fun layoutFileResourceContent(): Int {
-//        return R.layout.fragment_new_list
-        return  -1
-    }
     override fun layoutFileResourceCommon(): Int {
         return R.layout.fragment_new_list
     }
-    override fun onSearch(result: MutableList<VideoTable>) {
+    override fun onSearch(result: MutableList<VideoTable>,offset:Int) {
         firstLoad = true
         swipeRefreshLayout.isRefreshing = false
         if (result!= null){
-//            presenter.nextPageToken = result.nextPageToken
-
+            this.offset = offset
             list.addAll(result)
-//            if (list.size <result.pageInfo.totalResults){
-//                adapter.loadMore(true,this)
-//            } else {
-//                presenter.nextPageToken = ""
-//                adapter.loadMore(false,this)
-//            }
-            adapter.notifyDataSetChanged()
-//            for (obj in result){
-//                if (obj.snippet.liveBroadcastContent.contains("live",true)){
-//                    if ((obj as ItemSearchEntity).id.containsKey("videoId")) {
-//                        GBLog.info(
-//                            "URL_STREAM_VideoID",
-//                            (obj as ItemSearchEntity).id.get("videoId")!!,
-//                            App.getInstance().isDebugMode()
-//                        )
-//                    }
-//                }
-//            }
 
+            if (offset!=-1){
+                adapter.loadMore(true,this)
+            } else {
+                adapter.loadMore(false,this)
+            }
+            adapter.notifyDataSetChanged()
         }
     }
 

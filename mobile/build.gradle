@@ -64,6 +64,7 @@ dependencies {
     implementation 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
     implementation 'com.google.android.exoplayer:exoplayer:2.8.2'
     implementation 'com.github.HaarigerHarald:android-youtubeExtractor:master-SNAPSHOT'
+    implementation project(':draggableview')
 }
 repositories {
     mavenCentral()

@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/GBKids.iml" filepath="$PROJECT_DIR$/GBKids.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../draggableview/draggableview.iml" filepath="$PROJECT_DIR$/../draggableview/draggableview.iml" />
       <module fileurl="file://$PROJECT_DIR$/../gblibrary/gblibrary.iml" filepath="$PROJECT_DIR$/../gblibrary/gblibrary.iml" />
       <module fileurl="file://$PROJECT_DIR$/../gbyoutubelibrary/gbyoutubelibrary.iml" filepath="$PROJECT_DIR$/../gbyoutubelibrary/gbyoutubelibrary.iml" />
       <module fileurl="file://$PROJECT_DIR$/mobile/mobile.iml" filepath="$PROJECT_DIR$/mobile/mobile.iml" />

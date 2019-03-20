@@ -6,6 +6,7 @@
     <color name="txt_black">#000000</color>
     <color name="text_gray">#7F7F7F</color>
     <color name="txt_white">#FFFFFF</color>
+    <color name="bg_white">#FFFFFF</color>
     <color name="transparent">#00000000</color>
     <color name="bg_load_data">#80000000</color>
     <color name="stroke">#b1b1b1</color>

@@ -9,8 +9,14 @@ import android.support.design.widget.AppBarLayout
 import android.support.design.widget.CoordinatorLayout
 import android.support.v7.widget.Toolbar
 import android.widget.EditText
+import android.widget.TextView
+import thn.android.vn.draggableview.DraggablePanel
 import vn.android.thn.gbkids.R.id.toolbar
-import vn.android.thn.gbkids.views.fragment.SearchHistoryFragment
+import vn.android.thn.gbkids.views.dialogs.HistoryKeyWordDialog
+import vn.android.thn.gbkids.views.fragment.PlayerFragment
+import vn.android.thn.gbkids.views.fragment.PlayerVideoListFragment
+import vn.android.thn.gbkids.views.fragment.SearchResultFragment
+import vn.android.thn.gbkids.views.listener.SearchListener
 import vn.android.thn.gbkids.views.view.ToolBarView
 import vn.android.thn.gbkids.views.view.ToolBarViewType
 
@@ -19,7 +25,13 @@ import vn.android.thn.gbkids.views.view.ToolBarViewType
 // Created by NghiaTH on 2/26/19.
 // Copyright (c) 2019
 
-class MainActivity : ActivityBase(), MainPresenter.MainMvp {
+class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener {
+    override fun searchKeyWord(q: String) {
+        viewManager.hideDialog()
+        var searchResult = SearchResultFragment()
+        searchResult.keyword = q
+        viewManager.pushView(searchResult)
+    }
     override fun apiError() {
 
     }
@@ -33,12 +45,18 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp {
     }
 
     lateinit var presenter: MainPresenter
-    lateinit var ed_key_word:EditText
+    lateinit var txt_key_word:TextView
+    lateinit var draggablePanel: DraggablePanel
     lateinit var mn_action_search:View
     lateinit var view_search_bar:View
+    var keyword = ""
+     var player =PlayerFragment()
+     var videoListPlayer =PlayerVideoListFragment()
     override fun onCreate(savedInstanceState: Bundle?) {
         presenter = MainPresenter(this,this)
         super.onCreate(savedInstanceState)
+        draggablePanel = findViewById(R.id.draggable_panel)!!
+
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
         showToolBar()
@@ -49,9 +67,30 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp {
 
         view_search_bar = findViewById(R.id.view_search_bar)
         mn_action_search = findViewById(R.id.mn_action_search)
-        ed_key_word = findViewById(R.id.ed_key_word)
+        txt_key_word = findViewById(R.id.txt_key_word)
         mn_action_search.setOnClickListener {
-            viewManager.pushView(SearchHistoryFragment::class)
+//            viewManager.pushView(SearchHistoryFragment::class)
+            val searchFragment = HistoryKeyWordDialog()
+            searchFragment.listener = this
+            viewManager.showDialog(searchFragment)
+        }
+        initPlayView()
+    }
+    fun initPlayView(){
+        draggablePanel = findViewById(R.id.draggable_panel)!!
+        draggablePanel.setFragmentManager(supportFragmentManager);
+        draggablePanel.setTopFragment(player);
+        draggablePanel.setBottomFragment(videoListPlayer);
+        draggablePanel.setTopViewHeight(300)
+        draggablePanel.initializeView()
+    }
+    fun showPlayer(videoId:String,isShow:Boolean = true){
+        if (isShow) {
+            player.loadVideo(videoId)
+            draggablePanel.visibility = View.VISIBLE
+            draggablePanel.maximize()
+        } else{
+            draggablePanel.visibility = View.GONE
         }
     }
     fun toolBarViewMode(toolBarView: ToolBarView = ToolBarView.AUTO_HIDE){
@@ -95,6 +134,9 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp {
 
         }
 
+    }
+    fun loadKeyWord(keyword:String){
+        txt_key_word.text = keyword
     }
     fun showToolBarViewType(toolBarViewType: ToolBarViewType = ToolBarViewType.NORMAL){
         if (toolBarViewType ==ToolBarViewType.NORMAL ){

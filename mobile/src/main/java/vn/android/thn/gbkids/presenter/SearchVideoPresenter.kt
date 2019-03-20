@@ -17,14 +17,16 @@ import vn.android.thn.library.net.GBRequestError
 // Created by NghiaTH on 2/27/19.
 // Copyright (c) 2019
 
-class NewVideoPresenter(mvp: SearchMvp, mActivity: FragmentActivity?) :
-    PresenterBase<NewVideoPresenter.SearchMvp>(mvp, mActivity) {
-    var nextPageToken = ""
-    fun loadNew(offset:Int = 0,isShowPopup: Boolean = true){
+class SearchVideoPresenter(mvp: SearchMvp, mActivity: FragmentActivity?) :
+    PresenterBase<SearchVideoPresenter.SearchMvp>(mvp, mActivity) {
+    var keyword:String = ""
+    fun searchKeyword(keyword:String,offset:Int = 0,isShowPopup: Boolean = true){
+        this.keyword = keyword
         if (isShowPopup) {
             showLoading()
         }
-        val api = GBTubeRequest(GBRequestName.NEW,mActivity!!)
+        val api = GBTubeRequest(GBRequestName.SEARCH,mActivity!!)
+        api.addQueryParameter("q",keyword)
         api.addHeader("offset",offset.toString())
         api.get().execute(object : GBTubeRequestCallBack {
             override fun onRequestError(errorRequest: GBRequestError, request: GBTubeRequest) {
@@ -56,8 +58,8 @@ class NewVideoPresenter(mvp: SearchMvp, mActivity: FragmentActivity?) :
     }
 
     override fun onRefreshComplete(requestName: String) {
-        if (requestName.equals(GBRequestName.NEW,true)){
-            loadNew(0,true)
+        if (requestName.equals(GBRequestName.SEARCH,true)){
+            searchKeyword(keyword,0,true)
         } else {
             hideLoading()
         }
