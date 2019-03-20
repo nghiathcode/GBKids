@@ -35,7 +35,7 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
 //        val detail = VideoDetailFragment()
 //        detail.videoId = (obj as VideoTable).videoID!!
 //        viewManager.pushView(detail)
-        (activity as MainActivity).showPlayer((obj as VideoTable).videoID!!,true)
+        (activity as MainActivity).showPlayer((obj as VideoTable),true)
 //        viewManager.startActivity(VideoPlayerActivity::class.java)
     }
 

@@ -5,4 +5,5 @@ object GBRequestName {
     val REGISTER = "register"
     val NEW = "new"
     val SEARCH = "search"
+    val NEXT_VIDEO = "next-video/%s"
 }

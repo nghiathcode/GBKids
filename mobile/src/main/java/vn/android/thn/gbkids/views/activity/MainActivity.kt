@@ -10,8 +10,10 @@ import android.support.design.widget.CoordinatorLayout
 import android.support.v7.widget.Toolbar
 import android.widget.EditText
 import android.widget.TextView
+import thn.android.vn.draggableview.DraggableListener
 import thn.android.vn.draggableview.DraggablePanel
 import vn.android.thn.gbkids.R.id.toolbar
+import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.views.dialogs.HistoryKeyWordDialog
 import vn.android.thn.gbkids.views.fragment.PlayerFragment
 import vn.android.thn.gbkids.views.fragment.PlayerVideoListFragment
@@ -82,11 +84,30 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener {
         draggablePanel.setTopFragment(player);
         draggablePanel.setBottomFragment(videoListPlayer);
         draggablePanel.setTopViewHeight(300)
+        draggablePanel.setDraggableListener(object : DraggableListener{
+            override fun onMaximized() {
+
+            }
+
+            override fun onMinimized() {
+
+            }
+
+            override fun onClosedToLeft() {
+                player.releasePlayer()
+            }
+
+            override fun onClosedToRight() {
+                player.releasePlayer()
+            }
+
+        })
         draggablePanel.initializeView()
     }
-    fun showPlayer(videoId:String,isShow:Boolean = true){
+    fun showPlayer(videoId:VideoTable,isShow:Boolean = true){
         if (isShow) {
-            player.loadVideo(videoId)
+            player.loadVideo(videoId.videoID)
+            videoListPlayer.loadNext(videoId)
             draggablePanel.visibility = View.VISIBLE
             draggablePanel.maximize()
         } else{

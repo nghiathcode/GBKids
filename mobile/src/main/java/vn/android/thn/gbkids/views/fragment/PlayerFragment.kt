@@ -7,6 +7,7 @@ import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import at.huber.youtubeExtractor.VideoMeta
 import at.huber.youtubeExtractor.YouTubeExtractor
 import at.huber.youtubeExtractor.YtFile
@@ -24,7 +25,9 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import vn.android.thn.gbkids.R
+import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.utils.LogUtils
+import vn.android.thn.gbkids.views.view.ImageLoader
 import vn.android.thn.library.utils.GBUtils
 
 
@@ -38,12 +41,14 @@ class PlayerFragment:Fragment(), PlaybackPreparer,
     lateinit var playerView: PlayerView
     var trackSelector: DefaultTrackSelector? = null
     var player: SimpleExoPlayer? = null
+    lateinit var img_thumbnail:ImageView
     override fun preparePlayback() {
 
     }
 
     override fun onVisibilityChange(visibility: Int) {
-
+        playerView.visibility = View.VISIBLE
+        img_thumbnail.visibility = View.GONE
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,6 +63,7 @@ class PlayerFragment:Fragment(), PlaybackPreparer,
         val h: Int = playerView.getResources().getConfiguration().screenHeightDp
         val w = playerView.getResources().getConfiguration().screenWidthDp
 //        LogUtils.info(fragmentName() + "VideoPaler:", "height : " + h + " weight: " + w)
+        img_thumbnail = view.findViewById(R.id.img_thumbnail)
         return view
     }
 
@@ -107,6 +113,7 @@ class PlayerFragment:Fragment(), PlaybackPreparer,
     }
     fun play(streamVideo: String) {
          myStream = streamVideo
+
         initializePlayer(streamVideo)
     }
     fun initializePlayer(streamVideo: String) {
@@ -116,7 +123,7 @@ class PlayerFragment:Fragment(), PlaybackPreparer,
             .createMediaSource(mp4VideoUri)
 
 //            var videoSource = HlsMediaSource(mp4VideoUri, dataSourceFactory, 1, null, null);
-        if (!GBUtils.isEmpty(streamVideo))
+        if (!GBUtils.isEmpty(streamVideo)) {
             if (player == null) {
                 player = ExoPlayerFactory.newSimpleInstance(activity, trackSelector);
 
@@ -129,11 +136,17 @@ class PlayerFragment:Fragment(), PlaybackPreparer,
                 player!!.prepare(videoSource)
                 player!!.setPlayWhenReady(true)
             }
+            playerView.visibility = View.VISIBLE
+            img_thumbnail.visibility = View.GONE
+        }
     }
     fun loadVideo(videoId:String){
+        playerView.visibility = View.GONE
+        img_thumbnail.visibility = View.VISIBLE
+        ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN+"/thumbnail_high/"+videoId)
         getYoutubeDownloadUrl("https://www.youtube.com/watch?v="+videoId)
     }
-    private fun releasePlayer() {
+    fun releasePlayer() {
         if (player != null) {
 //            updateStartPosition()
 //            shouldAutoPlay = player!!.playWhenReady
