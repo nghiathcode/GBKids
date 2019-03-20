@@ -101,9 +101,10 @@ class SearchResultFragment:BaseFragment(),SearchVideoPresenter.SearchMvp , ListI
     }
 
     override fun onItemClick(obj: Any, pos: Int) {
-        val detail = VideoDetailFragment()
-        detail.videoId = (obj as VideoTable).videoID!!
-        viewManager.pushView(detail)
+//        val detail = VideoDetailFragment()
+//        detail.videoId = (obj as VideoTable).videoID!!
+//        viewManager.pushView(detail)
+        (activity as MainActivity).showPlayer((obj as VideoTable),true)
     }
 
     override fun onLoadMore() {

@@ -8,17 +8,22 @@ import vn.android.thn.gbkids.views.fragment.NewFragment
 import android.support.design.widget.AppBarLayout
 import android.support.design.widget.CoordinatorLayout
 import android.support.v7.widget.Toolbar
+import android.view.ViewTreeObserver
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import thn.android.vn.draggableview.DraggableListener
 import thn.android.vn.draggableview.DraggablePanel
 import vn.android.thn.gbkids.R.id.toolbar
+import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.model.db.VideoTable
+import vn.android.thn.gbkids.utils.LogUtils
 import vn.android.thn.gbkids.views.dialogs.HistoryKeyWordDialog
 import vn.android.thn.gbkids.views.fragment.PlayerFragment
 import vn.android.thn.gbkids.views.fragment.PlayerVideoListFragment
 import vn.android.thn.gbkids.views.fragment.SearchResultFragment
 import vn.android.thn.gbkids.views.listener.SearchListener
+import vn.android.thn.gbkids.views.view.ImageLoader
 import vn.android.thn.gbkids.views.view.ToolBarView
 import vn.android.thn.gbkids.views.view.ToolBarViewType
 
@@ -27,7 +32,16 @@ import vn.android.thn.gbkids.views.view.ToolBarViewType
 // Created by NghiaTH on 2/26/19.
 // Copyright (c) 2019
 
-class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener {
+class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewTreeObserver.OnGlobalLayoutListener {
+    override fun onGlobalLayout() {
+        if(thumbnail_video.measuredHeight>0) {
+            thumbnail_video.getViewTreeObserver().removeGlobalOnLayoutListener(this)
+            updateHeightVideoPlay(thumbnail_video.measuredHeight)
+            player.loadVideo(video.videoID)
+            videoListPlayer.loadNext(video)
+            LogUtils.info("MainActivity","onGlobalLayout:"+thumbnail_video.measuredHeight.toString())
+        }
+    }
     override fun searchKeyWord(q: String) {
         viewManager.hideDialog()
         var searchResult = SearchResultFragment()
@@ -50,6 +64,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener {
     lateinit var txt_key_word:TextView
     lateinit var draggablePanel: DraggablePanel
     lateinit var mn_action_search:View
+    lateinit var thumbnail_video:ImageView
     lateinit var view_search_bar:View
     var keyword = ""
      var player =PlayerFragment()
@@ -76,14 +91,19 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener {
             searchFragment.listener = this
             viewManager.showDialog(searchFragment)
         }
+        thumbnail_video = findViewById(R.id.thumbnail_video)
+        draggablePanel = findViewById(R.id.draggable_panel)!!
         initPlayView()
     }
+    fun loadThumbnail(videoId:String){
+        ImageLoader.loadImage(thumbnail_video, Constants.DOMAIN+"/thumbnail_high/"+videoId)
+    }
     fun initPlayView(){
-        draggablePanel = findViewById(R.id.draggable_panel)!!
+
         draggablePanel.setFragmentManager(supportFragmentManager);
         draggablePanel.setTopFragment(player);
         draggablePanel.setBottomFragment(videoListPlayer);
-        draggablePanel.setTopViewHeight(300)
+//        draggablePanel.setTopViewHeight(300)
         draggablePanel.setDraggableListener(object : DraggableListener{
             override fun onMaximized() {
 
@@ -104,15 +124,23 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener {
         })
         draggablePanel.initializeView()
     }
+    lateinit var  video:VideoTable
     fun showPlayer(videoId:VideoTable,isShow:Boolean = true){
+        video = videoId
+        thumbnail_video.viewTreeObserver.addOnGlobalLayoutListener( this)
+        loadThumbnail(videoId.videoID)
         if (isShow) {
-            player.loadVideo(videoId.videoID)
-            videoListPlayer.loadNext(videoId)
-            draggablePanel.visibility = View.VISIBLE
-            draggablePanel.maximize()
+            draggablePanel.visibility = View.INVISIBLE
         } else{
             draggablePanel.visibility = View.GONE
         }
+    }
+    fun updateHeightVideoPlay(height:Int){
+        draggablePanel.setTopViewHeight(height)
+        draggablePanel.initializeView()
+        draggablePanel.visibility = View.VISIBLE
+        draggablePanel.maximize()
+
     }
     fun toolBarViewMode(toolBarView: ToolBarView = ToolBarView.AUTO_HIDE){
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar

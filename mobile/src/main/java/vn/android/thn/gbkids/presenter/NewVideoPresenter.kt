@@ -35,21 +35,23 @@ class NewVideoPresenter(mvp: SearchMvp, mActivity: FragmentActivity?) :
 
             override fun onResponse(httpCode: Int, response: GBTubeResponse, request: GBTubeRequest) {
 
-
-                val result = response.toResponse(NewResponse::class)!!
-                if (result!!.error.errorCode == ResponseCode.NO_ERROR){
-                    mMvp!!.onSearch(result.data,result.offset)
-                    if (isShowPopup) {
-                        hideLoading()
+                if (httpCode == 200){
+                    val result = response.toResponse(NewResponse::class)!!
+                    if (result!!.error.errorCode == ResponseCode.NO_ERROR){
+                        mMvp!!.onSearch(result.data,result.offset)
+                        if (isShowPopup) {
+                            hideLoading()
+                        }
+                    } else if (result!!.error.errorCode == ResponseCode.TOKEN_EXPIRED){
+                        refreshToken(request.mRequestName)
+                    } else{
+                        if (isShowPopup) {
+                            hideLoading()
+                        }
                     }
-                } else if (result!!.error.errorCode == ResponseCode.TOKEN_EXPIRED){
-                    refreshToken(request.mRequestName)
-                } else{
-                    if (isShowPopup) {
-                        hideLoading()
-                    }
+                } else {
+                    mMvp!!.onNetworkFail()
                 }
-
             }
         })
 

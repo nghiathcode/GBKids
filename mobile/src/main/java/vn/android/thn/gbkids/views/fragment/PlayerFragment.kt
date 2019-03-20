@@ -7,6 +7,7 @@ import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.ImageView
 import at.huber.youtubeExtractor.VideoMeta
 import at.huber.youtubeExtractor.YouTubeExtractor
@@ -24,9 +25,11 @@ import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import com.google.android.exoplayer2.video.VideoListener
 import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.utils.LogUtils
+import vn.android.thn.gbkids.views.activity.MainActivity
 import vn.android.thn.gbkids.views.view.ImageLoader
 import vn.android.thn.library.utils.GBUtils
 
@@ -36,19 +39,30 @@ import vn.android.thn.library.utils.GBUtils
 // Copyright (c) 2019
 
 class PlayerFragment:Fragment(), PlaybackPreparer,
-    PlayerControlView.VisibilityListener  {
+    PlayerControlView.VisibilityListener ,ViewTreeObserver.OnGlobalLayoutListener {
+    override fun onGlobalLayout() {
+        if(img_thumbnail.measuredHeight>0) {
+            img_thumbnail.getViewTreeObserver().removeGlobalOnLayoutListener(this)
+//            (activity as MainActivity).updateHeightVideoPlay(img_thumbnail.measuredHeight)
+            LogUtils.info(TAG,"onGlobalLayout:"+img_thumbnail.measuredHeight.toString())
+        }
+    }
+
     var myStream = ""
+    val TAG = "PlayerFragment"
     lateinit var playerView: PlayerView
     var trackSelector: DefaultTrackSelector? = null
     var player: SimpleExoPlayer? = null
+    lateinit var video_loading:View
     lateinit var img_thumbnail:ImageView
     override fun preparePlayback() {
-
+        LogUtils.info(TAG,"preparePlayback")
     }
 
     override fun onVisibilityChange(visibility: Int) {
         playerView.visibility = View.VISIBLE
-        img_thumbnail.visibility = View.GONE
+        video_loading.visibility = View.GONE
+        LogUtils.info(TAG,"onVisibilityChange")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,10 +74,12 @@ class PlayerFragment:Fragment(), PlaybackPreparer,
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view =inflater.inflate(R.layout.fragment_player,container,false)
         playerView =  view.findViewById(R.id.player_view)!!
+        video_loading = view.findViewById(R.id.video_loading)
         val h: Int = playerView.getResources().getConfiguration().screenHeightDp
         val w = playerView.getResources().getConfiguration().screenWidthDp
 //        LogUtils.info(fragmentName() + "VideoPaler:", "height : " + h + " weight: " + w)
         img_thumbnail = view.findViewById(R.id.img_thumbnail)
+
         return view
     }
 
@@ -126,9 +142,27 @@ class PlayerFragment:Fragment(), PlaybackPreparer,
         if (!GBUtils.isEmpty(streamVideo)) {
             if (player == null) {
                 player = ExoPlayerFactory.newSimpleInstance(activity, trackSelector);
+                player!!.addVideoListener(object :VideoListener{
+                    override fun onVideoSizeChanged(
+                        width: Int,
+                        height: Int,
+                        unappliedRotationDegrees: Int,
+                        pixelWidthHeightRatio: Float
+                    ) {
+                        LogUtils.info(TAG,"onVideoSizeChanged:h"+height.toString()+" w:"+width.toString())
+                        (activity as MainActivity).updateHeightVideoPlay(height)
+                    }
 
+                    override fun onRenderedFirstFrame() {
+                        LogUtils.info(TAG,"onRenderedFirstFrame")
+                        playerView.visibility = View.VISIBLE
+                        video_loading.visibility = View.GONE
+                    }
+
+                })
                 playerView.useController = true
                 playerView.player = player
+                playerView.setPlaybackPreparer(this)
                 var loopingSource = LoopingMediaSource(videoSource);
                 player!!.prepare(videoSource)
                 player!!.setPlayWhenReady(true)
@@ -137,15 +171,20 @@ class PlayerFragment:Fragment(), PlaybackPreparer,
                 player!!.setPlayWhenReady(true)
             }
             playerView.visibility = View.VISIBLE
-            img_thumbnail.visibility = View.GONE
+            video_loading.visibility = View.VISIBLE
         }
     }
     fun loadVideo(videoId:String){
-        playerView.visibility = View.GONE
-        img_thumbnail.visibility = View.VISIBLE
+        playerView.visibility = View.VISIBLE
+        video_loading.visibility = View.VISIBLE
+
+
+//        img_thumbnail.viewTreeObserver.addOnGlobalLayoutListener( this)
         ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN+"/thumbnail_high/"+videoId)
+
         getYoutubeDownloadUrl("https://www.youtube.com/watch?v="+videoId)
     }
+
     fun releasePlayer() {
         if (player != null) {
 //            updateStartPosition()
@@ -159,19 +198,19 @@ class PlayerFragment:Fragment(), PlaybackPreparer,
         super.onDestroy()
         releasePlayer()
     }
-    public override fun onResume() {
+    override fun onResume() {
         super.onResume()
 
         if (Util.SDK_INT <= 23 || player == null) initializePlayer(myStream)
     }
 
-    public override fun onPause() {
+    override fun onPause() {
         super.onPause()
 
         if (Util.SDK_INT <= 23) releasePlayer()
     }
 
-    public override fun onStop() {
+    override fun onStop() {
         super.onStop()
 
         if (Util.SDK_INT > 23) releasePlayer()

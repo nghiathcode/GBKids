@@ -2,8 +2,10 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:app="http://schemas.android.com/apk/res-auto"
              android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-android:background="@color/bg_white">
+             android:layout_height="match_parent"
+
+
+             android:background="@color/txt_black">
     <com.google.android.exoplayer2.ui.PlayerView
             app:resize_mode="fixed_width"
             android:id="@+id/player_view"
@@ -11,10 +13,27 @@ android:background="@color/bg_white">
             android:layout_height="wrap_content">
 
     </com.google.android.exoplayer2.ui.PlayerView>
-    <ImageView
-            android:id="@+id/img_thumbnail"
+    <RelativeLayout
+            android:id="@+id/video_loading"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-    />
+            android:layout_height="match_parent"
+            android:background="@color/txt_black"
+    >
+        <ImageView
+                android:id="@+id/img_thumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+        />
+        <ProgressBar
+                style="?android:attr/progressBarStyleLargeInverse"
+                android:layout_centerVertical="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminateTint="@color/bg_white"
+                android:background="@color/transparent"
+                android:layout_centerInParent="true"
+        />
+    </RelativeLayout>
+
 </FrameLayout>

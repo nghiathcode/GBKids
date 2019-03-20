@@ -35,6 +35,7 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Lis
     lateinit var presenter:NextVideoPresenter
     private lateinit var mListView: RecyclerView
     private lateinit var adapter: SearchListAdapter
+    private lateinit var data_loading:View
     var offset:Int = -1
     var keyword = ""
     private var list: MutableList<VideoTable> = ArrayList<VideoTable>()
@@ -47,6 +48,8 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Lis
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view =inflater.inflate(R.layout.fragment_video_list_player,container,false)
         mListView = view.findViewById<RecyclerView>(R.id.list)!!
+        data_loading = view.findViewById(R.id.data_loading)!!
+        data_loading.visibility = View.INVISIBLE
         return view
     }
 
@@ -82,5 +85,13 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Lis
 
     override fun onNetworkFail() {
 
+    }
+
+    override fun onStartLoad() {
+        data_loading.visibility = View.VISIBLE
+    }
+
+    override fun onComplete() {
+        data_loading.visibility = View.GONE
     }
 }

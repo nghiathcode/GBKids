@@ -17,11 +17,17 @@
         >
         </RelativeLayout>
     </android.support.design.widget.CoordinatorLayout>
+
     <thn.android.vn.draggableview.DraggablePanel
             android:id="@+id/draggable_panel"
             android:layout_width="match_parent"
             android:visibility="gone"
+            app:top_fragment_height="200dp"
             android:layout_height="match_parent">
-
+        <ImageView
+                android:id="@+id/thumbnail_video"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"/>
     </thn.android.vn.draggableview.DraggablePanel>
 </android.support.v4.widget.DrawerLayout>

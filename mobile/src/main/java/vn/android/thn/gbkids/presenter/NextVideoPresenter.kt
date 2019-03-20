@@ -21,14 +21,14 @@ class NextVideoPresenter(mvp: NextVideoMvp, mActivity: FragmentActivity?) :
     fun loadData(videoId:String,offset:Int = 0,isShowPopup: Boolean = true){
         this.keyword = videoId
         if (isShowPopup) {
-            showLoading()
+            mMvp!!.onStartLoad()
         }
         val api = GBTubeRequest(String.format(GBRequestName.NEXT_VIDEO,keyword),mActivity!!)
         api.addHeader("offset",offset.toString())
         api.get().execute(object : GBTubeRequestCallBack {
             override fun onRequestError(errorRequest: GBRequestError, request: GBTubeRequest) {
                 if (isShowPopup) {
-                    hideLoading()
+                    mMvp!!.onComplete()
                 }
             }
 
@@ -39,13 +39,13 @@ class NextVideoPresenter(mvp: NextVideoMvp, mActivity: FragmentActivity?) :
                 if (result!!.error.errorCode == ResponseCode.NO_ERROR){
                     mMvp!!.onNextVideo(result.data,result.offset)
                     if (isShowPopup) {
-                        hideLoading()
+                        mMvp!!.onComplete()
                     }
                 } else if (result!!.error.errorCode == ResponseCode.TOKEN_EXPIRED){
                     refreshToken(request.mRequestName)
                 } else{
                     if (isShowPopup) {
-                        hideLoading()
+                        mMvp!!.onComplete()
                     }
                 }
 
@@ -57,11 +57,13 @@ class NextVideoPresenter(mvp: NextVideoMvp, mActivity: FragmentActivity?) :
         if (requestName.equals(String.format(GBRequestName.NEXT_VIDEO,keyword),true)){
             loadData(keyword,0,true)
         } else {
-            hideLoading()
+            mMvp!!.onComplete()
         }
 
     }
     interface NextVideoMvp : MVPBase {
         fun onNextVideo(listVideo: MutableList<VideoTable>,offset:Int = -1)
+        fun onStartLoad()
+        fun onComplete()
     }
 }

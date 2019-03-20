@@ -83,7 +83,7 @@ open class GBTubeRequest: GBRequest {
     override fun onResponse(call: Call, response: Response) {
         val body = response!!.body()?.string()
         GBLog.info("onResponse",body!!,app.isDebugMode())
-        if (mRequestListener != null) {
+        if (mRequestListener != null && response.code() == 200) {
             val callBack = mRequestListener as GBTubeRequestCallBack
             if (mContext != null) {
                 mContext!!.runOnUiThread {
@@ -94,6 +94,23 @@ open class GBTubeRequest: GBRequest {
                 }
             } else {
                 callBack!!.onResponse(response.code(),GBTubeResponse(body!!,responseType), this)
+            }
+        } else {
+            if (mRequestListener != null) {
+                val callBack = mRequestListener as GBTubeRequestCallBack
+                if (mContext != null) {
+                    mContext!!.runOnUiThread {
+                        callBack.onRequestError(
+                            GBRequestError.NETWORK_LOST,
+                            this
+                        )
+                    }
+                } else {
+                    callBack.onRequestError(
+                        GBRequestError.NETWORK_LOST,
+                        this
+                    )
+                }
             }
         }
     }
