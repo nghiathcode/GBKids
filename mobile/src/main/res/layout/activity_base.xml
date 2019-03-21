@@ -22,12 +22,21 @@
             android:id="@+id/draggable_panel"
             android:layout_width="match_parent"
             android:visibility="gone"
-            app:top_fragment_height="200dp"
             android:layout_height="match_parent">
-        <ImageView
-                android:id="@+id/thumbnail_video"
+        <RelativeLayout
+                android:id="@+id/top_view_video"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="invisible"/>
+                android:visibility="invisible"
+                android:layout_height="wrap_content">
+            <ImageView
+                    android:id="@+id/thumbnail_video"
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="-35dp"
+                    android:layout_marginBottom="-35dp"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:visibility="invisible"/>
+        </RelativeLayout>
     </thn.android.vn.draggableview.DraggablePanel>
+
 </android.support.v4.widget.DrawerLayout>

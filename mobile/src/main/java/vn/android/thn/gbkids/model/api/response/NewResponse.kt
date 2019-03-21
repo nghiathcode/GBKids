@@ -15,7 +15,7 @@ import vn.android.thn.gbyoutubelibrary.entity.SearchEntity
 
 class NewResponse:GBTubeResponse() {
     var data: MutableList<VideoTable> = ArrayList<VideoTable>()
-    var offset = 0
+    var offset = -1
     override fun onJsonData(data: JSONObject) {
         if (has(data,"offset")){
             offset = data.getInt("offset")

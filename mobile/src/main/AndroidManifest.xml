@@ -35,8 +35,9 @@
                                 vn.android.thn.gbkids.model.db.AppSetting" />
         <activity
                 android:name=".views.activity.MainActivity"
-
-
+                android:configChanges="orientation|keyboardHidden|screenSize|locale"
+                android:launchMode="singleTop"
+                android:screenOrientation="portrait"
                 android:label="@string/app_name"
                 android:theme="@style/AppTheme.Launcher">
             <intent-filter>
@@ -47,7 +48,8 @@
         </activity>
         <activity android:name=".views.activity.VideoPlayerActivity"
                   android:launchMode="singleTop"
-                  android:theme="@style/PlayerTheme">
+                  android:theme="@style/PlayerTheme"
+        >
             <intent-filter>
                 <action android:name="com.google.android.exoplayer.demo.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>

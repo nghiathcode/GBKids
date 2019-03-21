@@ -1,5 +1,6 @@
 package vn.android.thn.gbkids.views.activity
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.View
 import vn.android.thn.gbkids.R
@@ -34,12 +35,10 @@ import vn.android.thn.gbkids.views.view.ToolBarViewType
 
 class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewTreeObserver.OnGlobalLayoutListener {
     override fun onGlobalLayout() {
-        if(thumbnail_video.measuredHeight>0) {
-            thumbnail_video.getViewTreeObserver().removeGlobalOnLayoutListener(this)
-            updateHeightVideoPlay(thumbnail_video.measuredHeight)
-            player.loadVideo(video.videoID)
-            videoListPlayer.loadNext(video)
-            LogUtils.info("MainActivity","onGlobalLayout:"+thumbnail_video.measuredHeight.toString())
+        if(top_view_video.measuredHeight>0) {
+            top_view_video.getViewTreeObserver().removeGlobalOnLayoutListener(this)
+            updateHeightVideoPlay(top_view_video.measuredHeight )
+            LogUtils.info("MainActivity","onGlobalLayout:"+top_view_video.measuredHeight.toString())
         }
     }
     override fun searchKeyWord(q: String) {
@@ -69,6 +68,8 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
     var keyword = ""
      var player =PlayerFragment()
      var videoListPlayer =PlayerVideoListFragment()
+    lateinit var top_view_video:View
+
     override fun onCreate(savedInstanceState: Bundle?) {
         presenter = MainPresenter(this,this)
         super.onCreate(savedInstanceState)
@@ -81,7 +82,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             onBackPressed()
             viewManager.hideKeyboard()
         }
-
+        top_view_video = findViewById(R.id.top_view_video)
         view_search_bar = findViewById(R.id.view_search_bar)
         mn_action_search = findViewById(R.id.mn_action_search)
         txt_key_word = findViewById(R.id.txt_key_word)
@@ -93,6 +94,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         }
         thumbnail_video = findViewById(R.id.thumbnail_video)
         draggablePanel = findViewById(R.id.draggable_panel)!!
+
         initPlayView()
     }
     fun loadThumbnail(videoId:String){
@@ -103,10 +105,13 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         draggablePanel.setFragmentManager(supportFragmentManager);
         draggablePanel.setTopFragment(player);
         draggablePanel.setBottomFragment(videoListPlayer);
-//        draggablePanel.setTopViewHeight(300)
         draggablePanel.setDraggableListener(object : DraggableListener{
             override fun onMaximized() {
-
+                if (videoPlay!= null){
+                    player.loadVideo(videoPlay!!.videoID)
+                    videoListPlayer.loadNext(videoPlay!!)
+                    videoPlay = null
+                }
             }
 
             override fun onMinimized() {
@@ -115,30 +120,34 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
 
             override fun onClosedToLeft() {
                 player.releasePlayer()
+                draggablePanel.visibility = View.INVISIBLE
             }
 
             override fun onClosedToRight() {
                 player.releasePlayer()
+                draggablePanel.visibility = View.INVISIBLE
             }
 
         })
         draggablePanel.initializeView()
     }
-    lateinit var  video:VideoTable
+     var  videoPlay:VideoTable? = null
     fun showPlayer(videoId:VideoTable,isShow:Boolean = true){
-        video = videoId
-        thumbnail_video.viewTreeObserver.addOnGlobalLayoutListener( this)
-        loadThumbnail(videoId.videoID)
-        if (isShow) {
+        videoPlay = videoId
+        if (draggablePanel.visibility !=View.VISIBLE) {
+            top_view_video.viewTreeObserver.addOnGlobalLayoutListener( this)
             draggablePanel.visibility = View.INVISIBLE
-        } else{
-            draggablePanel.visibility = View.GONE
+            loadThumbnail(videoId.videoID)
+        } else {
+            draggablePanel.maximize()
         }
     }
     fun updateHeightVideoPlay(height:Int){
+        if (draggablePanel.visibility !=View.VISIBLE) {
+            draggablePanel.visibility = View.VISIBLE
+        }
         draggablePanel.setTopViewHeight(height)
         draggablePanel.initializeView()
-        draggablePanel.visibility = View.VISIBLE
         draggablePanel.maximize()
 
     }
@@ -206,6 +215,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
     override fun initView() {
         if (app.appSetting()!= null) {
             viewManager.addView(NewFragment::class)
+
         } else {
             presenter.register()
         }

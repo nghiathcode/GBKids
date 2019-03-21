@@ -38,12 +38,14 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Lis
     private lateinit var data_loading:View
     var offset:Int = -1
     var keyword = ""
+    private var isNextVideo = true
     private var list: MutableList<VideoTable> = ArrayList<VideoTable>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         presenter = NextVideoPresenter(this,activity)
         adapter = SearchListAdapter(activity!!,list)
         adapter.listener = this
+        adapter.loadMore(false,this)
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view =inflater.inflate(R.layout.fragment_video_list_player,container,false)
@@ -63,10 +65,16 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Lis
     }
     fun loadNext(video:VideoTable){
         keyword= video.videoID
-        list.clear()
+        adapter.loadMore(false,this)
+        isNextVideo = true
         presenter.loadData(video.videoID)
     }
     override fun onNextVideo(listVideo: MutableList<VideoTable>, offset: Int) {
+        if (isNextVideo){
+            list.clear()
+            isNextVideo = false
+            adapter.notifyDataSetChanged()
+        }
         if (listVideo.size>0){
             this.offset = offset
             list.addAll(listVideo)

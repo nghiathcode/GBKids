@@ -35,8 +35,9 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
 //        val detail = VideoDetailFragment()
 //        detail.videoId = (obj as VideoTable).videoID!!
 //        viewManager.pushView(detail)
-        (activity as MainActivity).showPlayer((obj as VideoTable),true)
+
 //        viewManager.startActivity(VideoPlayerActivity::class.java)
+        (activity as MainActivity).showPlayer((obj as VideoTable),true)
     }
 
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
@@ -57,6 +58,7 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
         mListView = findViewById<RecyclerView>(R.id.list)!!
         swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)!!
         mListView.adapter = adapter
+
         adapter.notifyDataSetChanged()
         val mLayoutManager = LinearLayoutManager(activity!!)
         mListView.setLayoutManager(mLayoutManager)
@@ -89,6 +91,7 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
     override fun loadData() {
         if (!firstLoad){
             presenter.loadNew()
+            adapter.loadMore(false, this)
         }
 
     }
