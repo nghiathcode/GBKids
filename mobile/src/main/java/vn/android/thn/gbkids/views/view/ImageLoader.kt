@@ -28,7 +28,7 @@ class ImageLoader {
                     .load(url)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .error(R.drawable.ico_no_image_row)
-//                    .placeholder(R.drawable.spinner)
+                    .placeholder(R.drawable.placeholder)
 //                    .listener(object :RequestListener<String, GlideDrawable>{
 //                        override fun onException(
 //                            e: Exception?,
@@ -68,7 +68,7 @@ class ImageLoader {
                     .load(url)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .error(R.drawable.ico_no_image_row)
-//                    .placeholder(R.drawable.spinner)
+                    .placeholder(R.drawable.placeholder)
 //                    .listener(object :RequestListener<String, GlideDrawable>{
 //                        override fun onException(
 //                            e: Exception?,

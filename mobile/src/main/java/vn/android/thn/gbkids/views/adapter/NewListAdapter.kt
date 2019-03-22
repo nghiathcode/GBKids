@@ -14,16 +14,17 @@ import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.views.view.ImageLoader
 
-import vn.android.thn.gbyoutubelibrary.entity.ItemSearchEntity
+import com.google.android.gms.ads.AdView
 
 
 //
 // Created by NghiaTH on 2/27/19.
 // Copyright (c) 2019
 
-class NewListAdapter (private val mContext: Context, var list: MutableList<VideoTable>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class NewListAdapter (private val mContext: Context, var list: MutableList<Any>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val TYPE_DATA = 0
     private val TYPE_LOAD_MORE = 1
+    private val BANNER_AD_VIEW_TYPE = 2
     var listener: ListItemListener? = null
     var isLoadMore = false
     var loadMoreListener: LoadMoreListener? = null
@@ -40,10 +41,19 @@ class NewListAdapter (private val mContext: Context, var list: MutableList<Video
             if (position == list.size){
                 return TYPE_LOAD_MORE
             } else {
-                return TYPE_DATA
+                if (position  == 0){
+                    return BANNER_AD_VIEW_TYPE
+                } else {
+                    return TYPE_DATA
+                }
+
             }
         } else {
-            return TYPE_DATA
+            if (position  == 0){
+                return BANNER_AD_VIEW_TYPE
+            } else {
+                return TYPE_DATA
+            }
         }
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -51,6 +61,10 @@ class NewListAdapter (private val mContext: Context, var list: MutableList<Video
             val itemView = LayoutInflater.from(mContext)
                 .inflate(R.layout.row_new_list, parent, false)
             return ViewHolder(itemView)
+        } else if (viewType == BANNER_AD_VIEW_TYPE){
+            var bannerLayoutView = LayoutInflater.from(mContext)
+                .inflate(R.layout.row_ad_new_list, parent, false)
+            return AdViewHolder(bannerLayoutView)
         } else {
             val itemView = LayoutInflater.from(mContext)
                 .inflate(R.layout.row_load_more, parent, false)
@@ -68,15 +82,33 @@ class NewListAdapter (private val mContext: Context, var list: MutableList<Video
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (getItemViewType(position) == TYPE_DATA) {
-            (holder as NewListAdapter.ViewHolder).bindData(list.get(position))
-        } else {
+            (holder as NewListAdapter.ViewHolder).bindData(list.get(position) as VideoTable)
+        } else if (getItemViewType(position) == BANNER_AD_VIEW_TYPE){
+            var bannerHolder = holder as AdViewHolder
+            var adView = list.get(position) as AdView
+            var adCardView = bannerHolder.itemView as ViewGroup
+            if (adCardView.childCount > 0) {
+                adCardView.removeAllViews()
+            }
+            if (adView.parent != null) {
+                (adView.parent as ViewGroup).removeView(adView)
+            }
+
+            // Add the banner ad to the ad view.
+            adCardView.addView(adView)
+        }else {
             (holder as NewListAdapter.ViewHolderLoadMore).onLoadMore()
         }
+    }
+    internal inner class AdViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
+
     }
     internal inner class ViewHolderLoadMore(itemView: View) : RecyclerView.ViewHolder(itemView){
         fun onLoadMore(){
             if (loadMoreListener!= null){
+                isLoadMore = false
                 loadMoreListener!!.onLoadMore()
+                loadMoreListener = null
             }
         }
     }

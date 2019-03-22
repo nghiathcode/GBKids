@@ -14,7 +14,6 @@ import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.views.view.ImageLoader
 
-import vn.android.thn.gbyoutubelibrary.entity.ItemSearchEntity
 
 
 //

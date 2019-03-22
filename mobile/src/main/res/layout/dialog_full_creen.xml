@@ -2,7 +2,8 @@
 <com.google.android.exoplayer2.ui.PlayerView
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        app:resize_mode="fixed_width"
+        app:resize_mode="fill"
+        android:keepScreenOn="true"
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent">

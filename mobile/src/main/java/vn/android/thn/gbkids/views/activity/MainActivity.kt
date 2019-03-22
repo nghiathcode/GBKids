@@ -13,6 +13,7 @@ import android.view.ViewTreeObserver
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import com.google.android.gms.ads.AdRequest
 import thn.android.vn.draggableview.DraggableListener
 import thn.android.vn.draggableview.DraggablePanel
 import vn.android.thn.gbkids.R.id.toolbar
@@ -94,8 +95,18 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         }
         thumbnail_video = findViewById(R.id.thumbnail_video)
         draggablePanel = findViewById(R.id.draggable_panel)!!
-
+        txt_key_word.setOnClickListener {
+            val searchFragment = HistoryKeyWordDialog()
+            searchFragment.listener = this
+            searchFragment.keyword =txt_key_word.text.toString()
+            viewManager.showDialog(searchFragment)
+        }
         initPlayView()
+
+//        AdRequest.Builder.addTestDevice("BCB68136B98CF003B0B4965411508000")
+//        AdRequest.Builder()
+//            .addTestDevice("27438b00914bb2f60fb50d2d35bccbd5")
+//            .build();
     }
     fun loadThumbnail(videoId:String){
         ImageLoader.loadImage(thumbnail_video, Constants.DOMAIN+"/thumbnail_high/"+videoId)
@@ -108,7 +119,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         draggablePanel.setDraggableListener(object : DraggableListener{
             override fun onMaximized() {
                 if (videoPlay!= null){
-                    player.loadVideo(videoPlay!!.videoID)
+                    player.playNewVideo(videoPlay!!)
                     videoListPlayer.loadNext(videoPlay!!)
                     videoPlay = null
                 }
@@ -119,12 +130,12 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             }
 
             override fun onClosedToLeft() {
-                player.releasePlayer()
+                player.closeVideo()
                 draggablePanel.visibility = View.INVISIBLE
             }
 
             override fun onClosedToRight() {
-                player.releasePlayer()
+                player.closeVideo()
                 draggablePanel.visibility = View.INVISIBLE
             }
 
@@ -226,11 +237,17 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
-        viewManager.hideKeyboard()
+        if (draggablePanel.visibility == View.VISIBLE && draggablePanel.isMaximized){
+            draggablePanel.closeToLeft()
+        } else {
+            super.onBackPressed()
+            viewManager.hideKeyboard()
+        }
     }
     override fun setThemeApp() {
         setTheme(R.style.AppTheme)
     }
+    fun addBannerAds(){}
+    fun loadBannerAds(){}
 
 }

@@ -4,7 +4,6 @@ import jp.co.tss21.monistor.models.GBDataBase
 import org.json.JSONObject
 import vn.android.thn.gbkids.model.db.AppSetting
 import vn.android.thn.gbkids.model.db.VideoTable
-import vn.android.thn.gbyoutubelibrary.entity.SearchEntity
 
 
 //

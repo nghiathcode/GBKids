@@ -8,8 +8,6 @@ import vn.android.thn.gbkids.model.api.request.GBTubeRequest
 import vn.android.thn.gbkids.model.api.response.GBTubeResponse
 import vn.android.thn.gbkids.model.api.response.NewResponse
 import vn.android.thn.gbkids.model.db.VideoTable
-import vn.android.thn.gbyoutubelibrary.entity.SearchParam
-import vn.android.thn.gbyoutubelibrary.entity.YoutubeApiName
 import vn.android.thn.library.net.GBRequestError
 
 

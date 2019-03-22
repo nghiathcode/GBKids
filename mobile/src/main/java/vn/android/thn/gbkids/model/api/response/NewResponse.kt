@@ -6,7 +6,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.model.entity.ThumbnailEntity
-import vn.android.thn.gbyoutubelibrary.entity.SearchEntity
 
 
 //

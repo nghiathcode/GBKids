@@ -1,8 +1,4 @@
 package vn.android.thn.gbkids.model.entity
-
-import vn.android.thn.gbyoutubelibrary.entity.ImageEntity
-
-
 //
 // Created by NghiaTH on 3/13/19.
 // Copyright (c) 2019

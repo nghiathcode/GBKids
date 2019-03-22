@@ -1,5 +1,6 @@
 package vn.android.thn.gbkids.views.dialogs
 
+import android.content.DialogInterface
 import android.content.pm.ActivityInfo
 import android.view.View
 import android.widget.ImageView
@@ -35,6 +36,7 @@ class FullScreenDialog : GBDialogFragment(), PlaybackPreparer {
     lateinit var listener: FullScreenListener
     private lateinit var fullScreen: ImageView
     override fun initView() {
+        isCancelable = true
         playerView =  findViewById(R.id.player_view)!!
         fullScreen = findViewById<ImageView>(R.id.exo_fullscreen_button)!!
         fullScreen.setImageResource(R.drawable.unfullscreen)
@@ -80,6 +82,7 @@ class FullScreenDialog : GBDialogFragment(), PlaybackPreparer {
     }
     fun releasePlayer() {
         if (player != null) {
+            currentStop = player!!.currentPosition
             player!!.release()
             player = null
         }
@@ -121,5 +124,9 @@ class FullScreenDialog : GBDialogFragment(), PlaybackPreparer {
     }
     interface FullScreenListener{
         fun onCloseFullScreen(currentStop: Long)
+    }
+
+    override fun onCancel(dialog: DialogInterface?) {
+        dismiss()
     }
 }

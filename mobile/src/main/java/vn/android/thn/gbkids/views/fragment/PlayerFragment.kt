@@ -34,6 +34,7 @@ import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.utils.LogUtils
+import vn.android.thn.gbkids.utils.Utils
 import vn.android.thn.gbkids.views.activity.MainActivity
 import vn.android.thn.gbkids.views.dialogs.FullScreenDialog
 import vn.android.thn.gbkids.views.view.ImageLoader
@@ -123,8 +124,10 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                 // Iterate over itags
                 var i = 0
                 var itag: Int
-                var lstUrl: MutableList<String> = ArrayList<String>()
+                var lstUrl: MutableList<YtFile> = ArrayList<YtFile>()
+                var screenUrl = HashMap<Int,String>()
                 var firstLoadURL = false
+                var density = Utils.getScreen(activity!!)
                 while (i < ytFiles.size()) {
                     itag = ytFiles.keyAt(i)
                     // ytFile represents one file with its url and meta data
@@ -134,9 +137,13 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                     if (ytFile.format.height == -1 || ytFile.format.height >= 360) {
 //                        addButtonToMainLayout(vMeta.title, ytFile)
                         LogUtils.info("URL_STREAM_" + ytFile.format.height + ":", ytFile.url)
-                        lstUrl.add(ytFile.url)
-
+                        LogUtils.info("Screen:",density.toString())
+                        lstUrl.add(ytFile)
+                        if (!screenUrl.containsKey(ytFile.format.height)) {
+                            screenUrl.put(ytFile.format.height, ytFile.url)
+                        }
                         if (!firstLoadURL) {
+
                             firstLoadURL = true
                             play(ytFile.url)
                         }
@@ -144,7 +151,16 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                     }
                     i++
                 }
-
+//                if (screenUrl.containsKey(density)){
+//                    play(screenUrl.get(density)!!)
+//                } else {
+//                    for ((key,url) in screenUrl ){
+//                        if (key < density){
+//                            play(url)
+//                            return
+//                        }
+//                    }
+//                }
             }
         }.extract(youtubeLink, true, false)
     }
@@ -178,7 +194,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                     pixelWidthHeightRatio: Float
                 ) {
                     LogUtils.info(TAG, "onVideoSizeChanged:h" + height.toString() + " w:" + width.toString())
-                    (activity as MainActivity).updateHeightVideoPlay(height)
+//                    (activity as MainActivity).updateHeightVideoPlay(height)
                     if (currentStop>0){
                         player!!.seekTo(currentStop)
                     }
@@ -220,16 +236,24 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
      * playNewVideo
      */
     fun playNewVideo(video:VideoTable){
+        myStream = ""
         isNewVideo = true
         shouldAutoPlay = true
         currentStop = 0
+        playerView.visibility = View.VISIBLE
+        video_loading.visibility = View.VISIBLE
+        ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + video.videoID)
+        getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + video.videoID)
     }
     fun closeVideo(){
-        if (player != null) {
-            player!!.release()
-            player = null
-            myStream = ""
-        }
+
+        myStream = ""
+        isNewVideo = true
+        shouldAutoPlay = true
+        currentStop = 0
+        playerView.visibility = View.VISIBLE
+        video_loading.visibility = View.VISIBLE
+        releasePlayer()
     }
     fun releasePlayer() {
         if (player != null) {
