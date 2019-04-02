@@ -26,8 +26,11 @@ open class GBTubeRequest: GBRequest {
     constructor(apiName:String,context: FragmentActivity?,addHeader:Boolean = true) : super(apiName,context) {
         if (app.appSetting()!= null && addHeader) {
             addHeader("token", app.appSetting()!!.token)
-            addHeader("appId", app.getAppId())
+
         }
+        addHeader("appId", "vn.android.thn.gbkids")
+        addHeader("osType","0")
+        addHeader("deviceType","0")
     }
     override fun getDomain(): String {
         return Constants.DOMAIN

@@ -74,6 +74,12 @@ open class GBTubeResponse() {
             if (!GBUtils.isEmpty(dataResponse)) {
                 val dataJson = JSONTokener(dataResponse).nextValue()
                 if (dataJson is JSONObject) {
+                    if (has(dataJson,"appStatus")){
+                        val appStatus = dataJson.getJSONObject("appStatus")
+                        if (has(appStatus,"status")){
+                            app.appStatus =appStatus.getInt("status")
+                        }
+                    }
                     if (has(dataJson, "error")) {
                         error = Gson().fromJson<ErrorResponseEntity>(dataJson.get("error").toString(),ErrorResponseEntity::class.java)
                         if (error.errorCode == 100){

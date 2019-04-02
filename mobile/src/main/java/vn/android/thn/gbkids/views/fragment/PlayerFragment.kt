@@ -243,6 +243,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
         playerView.visibility = View.VISIBLE
         video_loading.visibility = View.VISIBLE
         ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + video.videoID)
+        closeVideo()
         getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + video.videoID)
     }
     fun closeVideo(){

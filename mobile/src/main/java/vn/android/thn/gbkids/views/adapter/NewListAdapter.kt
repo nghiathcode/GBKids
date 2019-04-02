@@ -15,6 +15,7 @@ import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.views.view.ImageLoader
 
 import com.google.android.gms.ads.AdView
+import vn.android.thn.gbkids.App
 
 
 //
@@ -130,21 +131,24 @@ class NewListAdapter (private val mContext: Context, var list: MutableList<Any>)
         fun bindData(obj:VideoTable){
 //            val snippet = obj.snippet
             txt_name.text = obj.title
-//            var thumbnails =obj.toImage()
-//            if (thumbnails!= null) {
-//                if (thumbnails.maxres != null) {
-//                    ImageLoader.loadImage(img_thumbnail, thumbnails!!.maxres!!.url)
-//                } else if (thumbnails.high != null) {
-//                    ImageLoader.loadImage(img_thumbnail, thumbnails!!.high!!.url)
-//                } else if (thumbnails.medium != null) {
-//                    ImageLoader.loadImage(img_thumbnail, thumbnails!!.medium!!.url)
-//                } else if (thumbnails.standard != null) {
-//                    ImageLoader.loadImage(img_thumbnail, thumbnails!!.standard!!.url)
-//                } else if (thumbnails.default != null) {
-//                    ImageLoader.loadImage(img_thumbnail, thumbnails!!.default!!.url)
-//                }
-//            }
-            ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN+"/thumbnail_high/"+obj.videoID)
+            if (App.getInstance().appStatus == 1){
+                var thumbnails =obj.toImage()
+                if (thumbnails!= null) {
+                    if (thumbnails.maxres != null) {
+                        ImageLoader.loadImage(img_thumbnail, thumbnails!!.maxres!!.url)
+                    } else if (thumbnails.high != null) {
+                        ImageLoader.loadImage(img_thumbnail, thumbnails!!.high!!.url)
+                    } else if (thumbnails.medium != null) {
+                        ImageLoader.loadImage(img_thumbnail, thumbnails!!.medium!!.url)
+                    } else if (thumbnails.standard != null) {
+                        ImageLoader.loadImage(img_thumbnail, thumbnails!!.standard!!.url)
+                    } else if (thumbnails.default != null) {
+                        ImageLoader.loadImage(img_thumbnail, thumbnails!!.default!!.url)
+                    }
+                }
+            } else {
+                ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + obj.videoID)
+            }
             txt_info.text = obj.channelTitle
         }
 

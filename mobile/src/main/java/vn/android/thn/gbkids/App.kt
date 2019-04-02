@@ -36,7 +36,7 @@ import java.util.ArrayList
 class App : Application() {
     val builder = GsonBuilder().excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
     val gson = builder.create()
-
+    var appStatus:Int = 0
     var mYoutubeStreamListener: YoutubeStreamListener? = null
     private var downloadDirectory: File? = null
     private var downloadCache: Cache? = null

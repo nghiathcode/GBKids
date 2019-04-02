@@ -134,8 +134,7 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
             } else {
                 adapter.loadMore(false,this)
             }
-//            addBannerAds()
-//            loadBannerAds()
+
             adapter.notifyDataSetChanged()
         }
     }
@@ -186,8 +185,11 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
                 loadBannerAd(0);
             }
         }
-
-        adView.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
+        if (app.isDebugMode()) {
+            adView.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
+        } else {
+            adView.loadAd(AdRequest.Builder().build())
+        }
     }
 
     override fun onResume() {
