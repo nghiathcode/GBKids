@@ -221,7 +221,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     fun loadVideo(videoId: String) {
         playerView.visibility = View.VISIBLE
         video_loading.visibility = View.VISIBLE
-        ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + videoId)
+        ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + videoId,videoId)
         getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + videoId)
     }
 
@@ -242,7 +242,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
         currentStop = 0
         playerView.visibility = View.VISIBLE
         video_loading.visibility = View.VISIBLE
-        ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + video.videoID)
+        ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + video.videoID,video.videoID)
         closeVideo()
         getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + video.videoID)
     }

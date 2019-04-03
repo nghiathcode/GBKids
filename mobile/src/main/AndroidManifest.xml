@@ -38,7 +38,8 @@
         <meta-data
                 android:name="AA_MODELS"
                 android:value="vn.android.thn.gbkids.model.db.VideoTable,
-                                vn.android.thn.gbkids.model.db.AppSetting" />
+                                vn.android.thn.gbkids.model.db.AppSetting,
+                                vn.android.thn.gbkids.model.db.KeyWordHistory" />
         <activity
                 android:name=".views.activity.MainActivity"
                 android:configChanges="orientation|keyboardHidden|screenSize|locale"

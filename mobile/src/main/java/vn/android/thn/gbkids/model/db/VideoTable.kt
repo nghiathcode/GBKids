@@ -17,17 +17,17 @@ class VideoTable : Model() {
     @Column(name = "videoID", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE)
     var videoID: String =""
     @Column(name = "title")
-    lateinit var title: String
+    var title: String=""
     @Column(name = "description")
-    lateinit var description: String
+    var description: String  =""
     @Column(name = "channelID")
-    lateinit var channelID: String
+     var channelID: String =""
     @Column(name = "thumbnails")
     var thumbnails: String = ""
     @Column(name = "channelTitle")
-    lateinit var channelTitle: String
+     var channelTitle: String=""
     @Column(name = "publishedAt")
-    lateinit var publishedAt: String
+     var publishedAt: String=""
     @Column(name = "tags")
     var tags: String = ""
     @Column(name = "statistics")
@@ -37,6 +37,7 @@ class VideoTable : Model() {
     @Column(name = "dateUpdate")
     var dateUpdate: String = ""
 
+    var urlImage = ""
     fun toImage(): ThumbnailEntity? {
         if (!GBUtils.isEmpty(thumbnails)) {
             val thumbnails = Gson().fromJson<ThumbnailEntity>(thumbnails, ThumbnailEntity::class.java)

@@ -109,7 +109,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
 //            .build();
     }
     fun loadThumbnail(videoId:String){
-        ImageLoader.loadImage(thumbnail_video, Constants.DOMAIN+"/thumbnail_high/"+videoId)
+        ImageLoader.loadImage(thumbnail_video, Constants.DOMAIN+"/thumbnail_high/"+videoId,videoId)
     }
     fun initPlayView(){
 

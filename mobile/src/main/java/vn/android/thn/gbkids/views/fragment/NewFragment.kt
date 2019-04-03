@@ -47,7 +47,7 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
     private lateinit var adapter: NewListAdapter
     lateinit var presenter:NewVideoPresenter
     var offset:Int = -1
-    private var list: MutableList<Any> = ArrayList<Any>()
+    private var list: MutableList<VideoTable> = ArrayList<VideoTable>()
     override fun getTitle(): String {
         return "new video"
     }
@@ -64,8 +64,8 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
         mListView.setItemAnimator(DefaultItemAnimator())
         //load ad
         if (!firstLoad) {
-            addBannerAds()
-            loadBannerAds()
+//            addBannerAds()
+//            loadBannerAds()
         }
         //end
         swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)!!
@@ -84,12 +84,12 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
             override fun onRefresh() {
                 list.clear()
 
-                adapter.loadMore(false, this@NewFragment)
+                adapter.loadMore(list,false, this@NewFragment)
                 adapter.notifyDataSetChanged()
                 presenter.nextPageToken = ""
                 offset =0
-                addBannerAds()
-                loadBannerAds()
+//                addBannerAds()
+//                loadBannerAds()
                 presenter.loadNew(0,false)
             }
 
@@ -106,8 +106,8 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
     }
     override fun loadData() {
         if (!firstLoad){
+            adapter.loadMore(list,false, this)
             presenter.loadNew()
-            adapter.loadMore(false, this)
         }
 
     }
@@ -115,6 +115,7 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
     override fun firstInit() {
         presenter = NewVideoPresenter(this,activity)
         adapter = NewListAdapter(activity!!,list)
+        adapter.loadMore(list,false, this)
         adapter.listener = this
     }
 
@@ -127,99 +128,99 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
         if (result!= null){
 
             this.offset = offset
-            list.addAll(result)
+//            list.addAll(result)
 
             if (offset!=-1){
-                adapter.loadMore(true,this)
+                adapter.loadMore(result,true,this)
             } else {
-                adapter.loadMore(false,this)
+                adapter.loadMore(result,false,this)
             }
 
             adapter.notifyDataSetChanged()
         }
     }
     fun addBannerAds(){
-        var i = 0
-        while (i <= list.size) {
-            val adView = AdView(activity)
-            adView.adSize = AdSize.BANNER
-            adView.setAdUnitId(getString(R.string.AD_UNIT_ID))
-            list.add(i, adView)
-            i += ITEMS_PER_AD
-
-        }
+//        var i = 0
+//        while (i <= list.size) {
+//            val adView = AdView(activity)
+//            adView.adSize = AdSize.BANNER
+//            adView.setAdUnitId(getString(R.string.AD_UNIT_ID))
+//            list.add(i, adView)
+//            i += ITEMS_PER_AD
+//
+//        }
     }
-    fun addBannerAdsList (listNew: MutableList<Any> ):MutableList<Any>{
-        var i = 0
-        while (i <= listNew.size) {
-            val adView = AdView(activity)
-            adView.adSize = AdSize.BANNER
-            adView.setAdUnitId(getString(R.string.AD_UNIT_ID))
-            listNew.add(i, adView)
-            i += ITEMS_PER_AD
-
-        }
-        return listNew
-    }
+//    fun addBannerAdsList (listNew: MutableList<Any> ):MutableList<Any>{
+//        var i = 0
+//        while (i <= listNew.size) {
+//            val adView = AdView(activity)
+//            adView.adSize = AdSize.BANNER
+//            adView.setAdUnitId(getString(R.string.AD_UNIT_ID))
+//            listNew.add(i, adView)
+//            i += ITEMS_PER_AD
+//
+//        }
+//        return listNew
+//    }
     fun loadBannerAds(){
-        loadBannerAd(0)
+//        loadBannerAd(0)
     }
     fun loadBannerAd(index:Int){
-        if (index >= list.size){
-            return
-        }
-        var item = list.get(index)
-        if (!(item is AdView)){
-            return
-        }
-        val adView = item as AdView
-        adView.adListener = object : AdListener() {
-            override fun onAdLoaded() {
-                super.onAdLoaded()
-                loadBannerAd(0);
-            }
-
-            override fun onAdFailedToLoad(p0: Int) {
-                super.onAdFailedToLoad(p0)
-                LogUtils.info("onAdFailedToLoad:",p0.toString())
-                loadBannerAd(0);
-            }
-        }
-        if (app.isDebugMode()) {
-            adView.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
-        } else {
-            adView.loadAd(AdRequest.Builder().build())
-        }
+//        if (index >= list.size){
+//            return
+//        }
+//        var item = list.get(index)
+//        if (!(item is AdView)){
+//            return
+//        }
+//        val adView = item as AdView
+//        adView.adListener = object : AdListener() {
+//            override fun onAdLoaded() {
+//                super.onAdLoaded()
+//                loadBannerAd(0);
+//            }
+//
+//            override fun onAdFailedToLoad(p0: Int) {
+//                super.onAdFailedToLoad(p0)
+//                LogUtils.info("onAdFailedToLoad:",p0.toString())
+//                loadBannerAd(0);
+//            }
+//        }
+//        if (app.isDebugMode()) {
+//            adView.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
+//        } else {
+//            adView.loadAd(AdRequest.Builder().build())
+//        }
     }
 
     override fun onResume() {
-        for (item in list) {
-            if (item is AdView) {
-                val adView = item as AdView
-                adView.resume()
-            }
-        }
+//        for (item in list) {
+//            if (item is AdView) {
+//                val adView = item as AdView
+//                adView.resume()
+//            }
+//        }
         super.onResume()
     }
 
     override fun onPause() {
-        for (item in list) {
-            if (item is AdView) {
-                val adView = item as AdView
-                adView.pause()
-            }
-        }
+//        for (item in list) {
+//            if (item is AdView) {
+//                val adView = item as AdView
+//                adView.pause()
+//            }
+//        }
         super.onPause()
 
     }
 
     override fun onDestroy() {
-        for (item in list) {
-            if (item is AdView) {
-                val adView = item as AdView
-                adView.destroy()
-            }
-        }
+//        for (item in list) {
+//            if (item is AdView) {
+//                val adView = item as AdView
+//                adView.destroy()
+//            }
+//        }
         super.onDestroy()
 
     }

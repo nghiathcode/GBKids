@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
 
-        tool:listitem="@layout/row_play_list_item">
+        tool:listitem="@layout/row_search_list">
 
     </android.support.v7.widget.RecyclerView>
 </android.support.constraint.ConstraintLayout>

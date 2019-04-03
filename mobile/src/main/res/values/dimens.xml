@@ -26,4 +26,22 @@
     <dimen name="tv_show_title_margin_left_top">5dip</dimen>
     <dimen name="tv_show_margin_left">5dip</dimen>
     <dimen name="tv_show_margin_bottom">10dip</dimen>
+    <dimen name="font_14">14sp</dimen>
+    <dimen name="margin_5">5dp</dimen>
+    <dimen name="margin_10">10dp</dimen>
+    <dimen name="margin_15">15dp</dimen>
+    <dimen name="margin_20">20dp</dimen>
+    <dimen name="radius_5">5dp</dimen>
+    <dimen name="radius_10">10dp</dimen>
+    <dimen name="padding_5">5dp</dimen>
+    <dimen name="padding_15">15dp</dimen>
+    <dimen name="padding_10">10dp</dimen>
+    <dimen name="padding_20">5dp</dimen>
+    <dimen name="padding_40">40dp</dimen>
+    <dimen name="view_30">30dp</dimen>
+    <dimen name="view_75">75dp</dimen>
+    <dimen name="view_32">32dp</dimen>
+    <dimen name="view_40">40dp</dimen>
+    <dimen name="view_120">120dp</dimen>
+    <dimen name="view_90">90dp</dimen>
 </resources>
