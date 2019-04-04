@@ -30,6 +30,7 @@ import vn.android.thn.gbkids.utils.LogUtils
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import vn.android.thn.gbkids.model.entity.StreamEntity
 import vn.android.thn.gbkids.views.activity.MainActivity
 import vn.android.thn.gbkids.views.view.ToolBarView
 import vn.android.thn.library.utils.GBUtils
@@ -61,11 +62,11 @@ class VideoDetailFragment : BaseFragment(), YoutubeStreamListener, PlaybackPrepa
         viewManager.hideDialog()
     }
 
-    override fun onStream(list_stream: ArrayList<String>) {
+    override fun onStream(list_stream: ArrayList<StreamEntity>) {
         viewManager.hideDialog()
 //        if (list_stream.size>0)
-        myStream = list_stream.get(0)
-        play(list_stream.get(0))
+        myStream = list_stream.get(0).url
+        play(list_stream.get(0).url)
     }
 
     var videoId = ""

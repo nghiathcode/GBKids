@@ -70,21 +70,24 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Lis
         presenter.loadData(video.videoID)
     }
     override fun onNextVideo(listVideo: MutableList<VideoTable>, offset: Int) {
-        if (isNextVideo){
-            list.clear()
-            isNextVideo = false
-            adapter.notifyDataSetChanged()
-        }
-        if (listVideo.size>0){
-            this.offset = offset
-            list.addAll(listVideo)
-            if (offset!=-1){
-                adapter.loadMore(true,this)
-            } else {
-                adapter.loadMore(false,this)
+        activity!!.runOnUiThread {
+            if (isNextVideo){
+                list.clear()
+                isNextVideo = false
+                adapter.notifyDataSetChanged()
             }
-            adapter.notifyDataSetChanged()
+            if (listVideo.size>0){
+                this.offset = offset
+                list.addAll(listVideo)
+                if (offset!=-1){
+                    adapter.loadMore(true,this)
+                } else {
+                    adapter.loadMore(false,this)
+                }
+                adapter.notifyDataSetChanged()
+            }
         }
+
     }
 
     override fun apiError() {

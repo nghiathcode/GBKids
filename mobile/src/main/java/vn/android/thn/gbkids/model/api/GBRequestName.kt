@@ -6,4 +6,5 @@ object GBRequestName {
     val NEW = "new"
     val SEARCH = "search"
     val NEXT_VIDEO = "next-video/%s"
+    val DELETE_VIDEO = "%s/delete"
 }

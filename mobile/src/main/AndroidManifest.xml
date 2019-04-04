@@ -68,6 +68,7 @@
             </intent-filter>
         </activity>
         <service android:name=".views.services.YoutubeStreamService"/>
+        <service android:name=".views.services.VideoDeleteService"/>
     </application>
 
 </manifest>

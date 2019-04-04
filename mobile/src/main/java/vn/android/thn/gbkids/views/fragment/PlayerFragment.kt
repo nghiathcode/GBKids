@@ -1,6 +1,7 @@
 package vn.android.thn.gbkids.views.fragment
 
 import android.app.Dialog
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
@@ -13,6 +14,7 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.TextView
 import at.huber.youtubeExtractor.VideoMeta
 import at.huber.youtubeExtractor.YouTubeExtractor
 import at.huber.youtubeExtractor.YtFile
@@ -30,13 +32,18 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.google.android.exoplayer2.video.VideoListener
+import vn.android.thn.gbfilm.views.listener.YoutubeStreamListener
+import vn.android.thn.gbkids.App
 import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.model.db.VideoTable
+import vn.android.thn.gbkids.model.entity.StreamEntity
 import vn.android.thn.gbkids.utils.LogUtils
 import vn.android.thn.gbkids.utils.Utils
 import vn.android.thn.gbkids.views.activity.MainActivity
 import vn.android.thn.gbkids.views.dialogs.FullScreenDialog
+import vn.android.thn.gbkids.views.services.VideoDeleteService
+import vn.android.thn.gbkids.views.services.YoutubeStreamService
 import vn.android.thn.gbkids.views.view.ImageLoader
 import vn.android.thn.library.utils.GBUtils
 
@@ -47,7 +54,51 @@ import vn.android.thn.library.utils.GBUtils
 
 class PlayerFragment : Fragment(), PlaybackPreparer,
     PlayerControlView.VisibilityListener, ViewTreeObserver.OnGlobalLayoutListener,
-    FullScreenDialog.FullScreenListener {
+    FullScreenDialog.FullScreenListener, YoutubeStreamListener {
+    var density = -1
+    override fun onStartStream() {
+        video_error.visibility = View.GONE
+        playerView.visibility = View.VISIBLE
+        video_loading.visibility = View.VISIBLE
+    }
+
+    override fun onStream(list_stream: ArrayList<StreamEntity>) {
+        video_error.visibility = View.GONE
+        playerView.visibility = View.VISIBLE
+        video_loading.visibility = View.GONE
+
+        if (list_stream.size>0){
+            for (stream in list_stream){
+                if (stream.quality == density){
+                    LogUtils.info("Play_URL_density:",stream.quality.toString())
+                    play(stream.url)
+                    return
+                }
+            }
+            var obj_steam = StreamEntity("",-1)
+            for (stream in list_stream){
+                if (stream.quality!= -1 && stream.quality < density){
+                    if(obj_steam.quality < stream.quality) {
+                        obj_steam = stream
+                    }
+                }
+            }
+            LogUtils.info("Play_URL:",obj_steam.quality.toString())
+            play(obj_steam.url)
+
+        }
+
+    }
+
+    override fun onStreamError() {
+        playerView.visibility = View.INVISIBLE
+        video_loading.visibility = View.GONE
+        video_error.visibility = View.VISIBLE
+        var intentServer = Intent(activity, VideoDeleteService::class.java)
+        intentServer.putExtra("videoId",videoIdCurrent)
+        activity!!.startService(intentServer)
+
+    }
 
 
     var currentStop: Long = 0
@@ -63,6 +114,9 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     lateinit var img_thumbnail: ImageView
     var isNewVideo = false
     var shouldAutoPlay = true
+    lateinit var video_error:TextView
+    var app = App.getInstance()
+    var videoIdCurrent = ""
     override fun preparePlayback() {
         LogUtils.info(TAG, "preparePlayback")
     }
@@ -85,6 +139,8 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
         mFullScreenDialog.listener = this
         playerView = view.findViewById(R.id.player_view)!!
         video_loading = view.findViewById(R.id.video_loading)
+        video_error = view.findViewById(R.id.video_error)
+        video_error.visibility = View.GONE
         val h: Int = playerView.getResources().getConfiguration().screenHeightDp
         val w = playerView.getResources().getConfiguration().screenWidthDp
 //        LogUtils.info(fragmentName() + "VideoPaler:", "height : " + h + " weight: " + w)
@@ -106,8 +162,8 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-//        app.mYoutubeStreamListener = this
-
+        density = Utils.getScreen(activity!!)
+        app.mYoutubeStreamListener = this
     }
 
     private fun getYoutubeDownloadUrl(youtubeLink: String) {
@@ -219,10 +275,15 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     }
 
     fun loadVideo(videoId: String) {
+        video_error.visibility = View.GONE
         playerView.visibility = View.VISIBLE
         video_loading.visibility = View.VISIBLE
-        ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + videoId,videoId)
-        getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + videoId)
+        videoIdCurrent = videoId
+        ImageLoader.loadImagePlay(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + videoId,videoId)
+//        getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + videoId)
+        var intentServer = Intent(activity, YoutubeStreamService::class.java)
+        intentServer.putExtra("videoId",videoId)
+        activity!!.startService(intentServer)
     }
 
     /**
@@ -235,26 +296,53 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     /**
      * playNewVideo
      */
-    fun playNewVideo(video:VideoTable){
+    fun playNewVideo(obj:VideoTable){
+        closeVideo()
         myStream = ""
         isNewVideo = true
         shouldAutoPlay = true
         currentStop = 0
+        videoIdCurrent = obj.videoID
+        video_error.visibility = View.GONE
         playerView.visibility = View.VISIBLE
         video_loading.visibility = View.VISIBLE
-        ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + video.videoID,video.videoID)
-        closeVideo()
-        getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + video.videoID)
+        if (App.getInstance().appStatus == 1){
+            if (GBUtils.isEmpty(obj.urlImage)){
+                var thumbnails =obj.toImage()
+                if (thumbnails!= null) {
+                    if (thumbnails.maxres != null) {
+                        obj.urlImage = thumbnails!!.maxres!!.url
+                    } else if (thumbnails.high != null) {
+                        obj.urlImage = thumbnails!!.high!!.url
+                    } else if (thumbnails.medium != null) {
+                        obj.urlImage =  thumbnails!!.medium!!.url
+                    } else if (thumbnails.standard != null) {
+                        obj.urlImage = thumbnails!!.standard!!.url
+                    } else if (thumbnails.default != null) {
+                        obj.urlImage = thumbnails!!.default!!.url
+                    }
+                }
+            }
+            ImageLoader.loadImagePlay(img_thumbnail, obj.urlImage,obj.videoID)
+        } else {
+            ImageLoader.loadImagePlay(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + obj.videoID,obj.videoID)
+        }
+
+//        ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + obj.videoID,obj.videoID)
+//        getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + video.videoID)
+        activity!!.stopService(Intent(activity, YoutubeStreamService::class.java))
+        var intentServer = Intent(activity, YoutubeStreamService::class.java)
+        intentServer.putExtra("videoId",obj.videoID)
+        activity!!.startService(intentServer)
     }
     fun closeVideo(){
-
+        releasePlayer()
         myStream = ""
         isNewVideo = true
         shouldAutoPlay = true
         currentStop = 0
         playerView.visibility = View.VISIBLE
         video_loading.visibility = View.VISIBLE
-        releasePlayer()
     }
     fun releasePlayer() {
         if (player != null) {

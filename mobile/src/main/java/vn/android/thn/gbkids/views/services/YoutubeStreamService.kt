@@ -2,8 +2,20 @@ package vn.android.thn.gbkids.views.services
 
 import android.app.IntentService
 import android.content.Intent
+import android.os.Bundle
+import android.util.SparseArray
+import at.huber.youtubeExtractor.VideoMeta
+import at.huber.youtubeExtractor.YouTubeExtractor
+import at.huber.youtubeExtractor.YtFile
 import vn.android.thn.gbkids.App
+import vn.android.thn.gbkids.constants.Constants
+import vn.android.thn.gbkids.model.entity.StreamEntity
+import vn.android.thn.gbkids.utils.LogUtils
+import vn.android.thn.gbkids.utils.Utils
 import vn.android.thn.library.utils.GBLog
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 //
@@ -11,14 +23,76 @@ import vn.android.thn.library.utils.GBLog
 // Copyright (c) 2019
 
 class YoutubeStreamService() : IntentService("YoutubeStreamService") {
-    var countDown = 10
 
     var videoId = ""
+    var stream_list:ArrayList<StreamEntity> = ArrayList<StreamEntity>()
     override fun onHandleIntent(intent: Intent?) {
-        countDown = 10
-
         videoId = intent!!.getStringExtra("videoId")
-        GBLog.info("URL_STREAM_VideoID",videoId,App.getInstance().isDebugMode())
+        getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + videoId)
 
+
+    }
+    private fun getYoutubeDownloadUrl(youtubeLink: String) {
+        object : YouTubeExtractor(App.getInstance()) {
+
+            public override fun onExtractionComplete(ytFiles: SparseArray<YtFile>?, vMeta: VideoMeta) {
+//                mainProgressBar.setVisibility(View.GONE)
+
+                if (ytFiles == null) {
+                    sendStream()
+                    return
+                }
+                var i = 0
+                var itag: Int
+                while (i < ytFiles.size()) {
+                    itag = ytFiles.keyAt(i)
+                    // ytFile represents one file with its url and meta data
+                    val ytFile = ytFiles.get(itag)
+                    // Just add videos in a decent format => height -1 = audio
+                    if (ytFile.format.height > -1 ) {
+
+                        if (ytFile.url.contains("ratebypass",true)) {
+                            if (isConnect(ytFile.url)){
+                                stream_list.add(StreamEntity(ytFile.url,ytFile.format.height))
+                                LogUtils.info("URL_STREAM_VideoID",ytFile.url)
+                            }
+
+                        }
+
+                    }
+                    i++
+                }
+                sendStream()
+            }
+        }.extract(youtubeLink, true, false)
+    }
+
+    private fun isConnect(url_check: String): Boolean {
+        var con: HttpURLConnection? = null
+        try {
+            val url = URL(url_check)
+            con = url.openConnection() as HttpURLConnection
+            con!!.setConnectTimeout(100)
+            val response_code = con!!.getResponseCode()
+            con!!.disconnect()
+            if (response_code == 200) {
+                return true
+            } else {
+                LogUtils.info("URL_STREAM_VideoID_error_3:", "no connect")
+                return false
+            }
+        } catch (e: IOException) {
+            LogUtils.info("URL_STREAM_VideoID_error_4:",  "")
+            return false
+        }
+
+    }
+    private fun sendStream(){
+        val sender = Intent()
+        val bundle = Bundle()
+        sender.action = Constants.YOUTUBE_STREAM
+        bundle.putSerializable("stream_list", stream_list)
+        sender.putExtras(bundle)
+        sendBroadcast(sender)
     }
 }

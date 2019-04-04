@@ -2,6 +2,7 @@ package vn.android.thn.gbkids.views.activity
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.os.StrictMode
 import android.view.View
 import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.presenter.MainPresenter
@@ -28,6 +29,9 @@ import vn.android.thn.gbkids.views.listener.SearchListener
 import vn.android.thn.gbkids.views.view.ImageLoader
 import vn.android.thn.gbkids.views.view.ToolBarView
 import vn.android.thn.gbkids.views.view.ToolBarViewType
+import android.os.StrictMode.setThreadPolicy
+
+
 
 
 //
@@ -74,6 +78,10 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
     override fun onCreate(savedInstanceState: Bundle?) {
         presenter = MainPresenter(this,this)
         super.onCreate(savedInstanceState)
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+            StrictMode.setThreadPolicy(policy)
+        }
         draggablePanel = findViewById(R.id.draggable_panel)!!
 
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar

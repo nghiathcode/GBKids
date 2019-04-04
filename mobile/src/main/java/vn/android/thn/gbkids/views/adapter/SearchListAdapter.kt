@@ -101,16 +101,16 @@ class SearchListAdapter (private val mContext: Context, var list: MutableList<Vi
                 if (GBUtils.isEmpty(obj.urlImage)){
                     var thumbnails =obj.toImage()
                     if (thumbnails!= null) {
-                        if (thumbnails.maxres != null) {
-                            obj.urlImage = thumbnails!!.maxres!!.url
-                        } else if (thumbnails.high != null) {
-                            obj.urlImage = thumbnails!!.high!!.url
+                        if (thumbnails.default != null) {
+                            obj.urlImage = thumbnails!!.default!!.url
                         } else if (thumbnails.medium != null) {
-                            obj.urlImage =  thumbnails!!.medium!!.url
+                            obj.urlImage = thumbnails!!.medium!!.url
                         } else if (thumbnails.standard != null) {
                             obj.urlImage = thumbnails!!.standard!!.url
-                        } else if (thumbnails.default != null) {
-                            obj.urlImage = thumbnails!!.default!!.url
+                        }else if (thumbnails.high != null) {
+                            obj.urlImage = thumbnails!!.high!!.url
+                        } else{
+                            obj.urlImage = thumbnails!!.maxres!!.url
                         }
                     }
                 }

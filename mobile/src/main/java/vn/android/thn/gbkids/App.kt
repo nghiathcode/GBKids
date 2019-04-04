@@ -22,6 +22,7 @@ import org.json.JSONObject
 import vn.android.thn.gbfilm.views.listener.YoutubeStreamListener
 import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.model.db.AppSetting
+import vn.android.thn.gbkids.model.entity.StreamEntity
 import vn.android.thn.gbkids.views.services.YoutubeStreamService
 import vn.android.thn.library.utils.GBUtils
 import java.io.File
@@ -187,8 +188,8 @@ class App : Application() {
     }
     private val youtybeStreamReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, initiatingIntent: Intent) {
-            val action = initiatingIntent.action
-            val stream_list = initiatingIntent.getStringArrayListExtra("stream_list")
+//            val action = initiatingIntent.action
+            val stream_list = initiatingIntent.getSerializableExtra("stream_list") as ArrayList<StreamEntity>
             if (mYoutubeStreamListener!= null){
                 if (stream_list.size>0) {
                     mYoutubeStreamListener!!.onStream(stream_list)
