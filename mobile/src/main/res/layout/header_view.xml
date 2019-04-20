@@ -1,69 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools">
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
     <android.support.design.widget.AppBarLayout
-            android:id="@+id/top_navi"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:fitsSystemWindows="true"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:id="@+id/top_navi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:fitsSystemWindows="true"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
         <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@color/colorPrimary"
-                android:elevation="4dp"
-                android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        >
-            <RelativeLayout
-                    android:layout_width="match_parent" android:layout_height="match_parent"
-                    android:visibility="visible">
-                <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:id="@+id/mn_action_search"
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:elevation="4dp"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-                        android:layout_centerVertical="true"
-                        android:src="@drawable/ico_mn_search"
-                        android:layout_marginRight="@dimen/margin_10"
-                        android:layout_alignParentRight="true"
-                />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginRight="@dimen/margin_15"
+                android:visibility="visible">
+
                 <ImageView
-                        android:layout_width="wrap_content"
-                           android:layout_height="wrap_content"
-                        android:src="@drawable/logo_no_bg"
-                        android:layout_marginTop="@dimen/margin_10"
-                        android:layout_marginBottom="@dimen/margin_10"
-                        android:adjustViewBounds="true"
-                        android:layout_centerInParent="true"
-                />
+                    android:id="@+id/mn_action_search"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ico_mn_search" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+
+                    android:layout_marginTop="@dimen/margin_10"
+                    android:layout_marginBottom="@dimen/margin_10"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/logo_no_bg" />
+
                 <RelativeLayout
-                        android:id="@+id/view_search_bar"
+                    android:id="@+id/view_search_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerVertical="true"
+                    android:layout_marginTop="@dimen/margin_10"
+                    android:layout_marginRight="@dimen/margin_20"
+                    android:layout_marginBottom="@dimen/margin_10"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/txt_key_word"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginBottom="@dimen/margin_10"
-                        android:layout_marginTop="@dimen/margin_10"
-                        android:layout_marginRight="@dimen/margin_20"
                         android:layout_centerVertical="true"
-                        android:visibility="gone">
-                    <TextView
-                            android:id="@+id/txt_key_word"
-                            android:layout_height="match_parent"
-                            android:padding="@dimen/padding_5"
-                            android:layout_width="match_parent"
-                            android:background="@drawable/background_radius_white"
-                            android:layout_centerVertical="true"
-                            android:textColor="@color/txt_black"
+                        android:background="@drawable/background_radius_white"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
 
-                            android:gravity="center_vertical"
-                            android:maxLines="1"
-                            android:ellipsize="end"
-                            android:singleLine="true"/>
+                        android:maxLines="1"
+                        android:padding="@dimen/padding_5"
+                        android:singleLine="true"
+                        android:textColor="@color/txt_black" />
 
 
                 </RelativeLayout>

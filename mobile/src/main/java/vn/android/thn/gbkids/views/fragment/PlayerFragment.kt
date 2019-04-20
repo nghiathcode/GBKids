@@ -35,6 +35,7 @@ import vn.android.thn.gbfilm.views.listener.YoutubeStreamListener
 import vn.android.thn.gbkids.App
 import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.constants.Constants
+import vn.android.thn.gbkids.model.db.VideoDownLoad
 import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.model.entity.StreamEntity
 import vn.android.thn.gbkids.utils.LogUtils
@@ -55,6 +56,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     PlayerControlView.VisibilityListener, ViewTreeObserver.OnGlobalLayoutListener,
     FullScreenDialog.FullScreenListener, YoutubeStreamListener {
     var density = -1
+    var playLocal = false
     override fun onStartStream() {
         video_error.visibility = View.GONE
         playerView.visibility = View.VISIBLE
@@ -84,7 +86,10 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
             }
             LogUtils.info("Play_URL:",obj_steam.quality.toString())
             if (videoPlay!= null){
-                videoPlay!!.save()
+                if (videoPlay is VideoTable){
+                    (videoPlay as VideoTable).save()
+                }
+
             }
             play(obj_steam.url)
 
@@ -121,7 +126,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     var app = App.getInstance()
     var videoIdCurrent = ""
     lateinit var listener:PlayerListener
-    var videoPlay:VideoTable? = null
+    var videoPlay:Any? = null
     override fun preparePlayback() {
         LogUtils.info(TAG, "preparePlayback")
     }
@@ -170,61 +175,6 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
         super.onActivityCreated(savedInstanceState)
         density = Utils.getScreen(activity!!)
         app.mYoutubeStreamListener = this
-    }
-
-    private fun getYoutubeDownloadUrl(youtubeLink: String) {
-        object : YouTubeExtractor(activity!!) {
-
-            public override fun onExtractionComplete(ytFiles: SparseArray<YtFile>?, vMeta: VideoMeta) {
-//                mainProgressBar.setVisibility(View.GONE)
-
-                if (ytFiles == null) {
-                    // Something went wrong we got no urls. Always check this.
-//                    finish()
-                    return
-                }
-                // Iterate over itags
-                var i = 0
-                var itag: Int
-                var lstUrl: MutableList<YtFile> = ArrayList<YtFile>()
-                var screenUrl = HashMap<Int,String>()
-                var firstLoadURL = false
-                var density = Utils.getScreen(activity!!)
-                while (i < ytFiles.size()) {
-                    itag = ytFiles.keyAt(i)
-                    // ytFile represents one file with its url and meta data
-                    val ytFile = ytFiles.get(itag)
-
-                    // Just add videos in a decent format => height -1 = audio
-                    if (ytFile.format.height == -1 || ytFile.format.height >= 360) {
-//                        addButtonToMainLayout(vMeta.title, ytFile)
-                        LogUtils.info("URL_STREAM_" + ytFile.format.height + ":", ytFile.url)
-                        LogUtils.info("Screen:",density.toString())
-                        lstUrl.add(ytFile)
-                        if (!screenUrl.containsKey(ytFile.format.height)) {
-                            screenUrl.put(ytFile.format.height, ytFile.url)
-                        }
-                        if (!firstLoadURL) {
-
-                            firstLoadURL = true
-                            play(ytFile.url)
-                        }
-
-                    }
-                    i++
-                }
-//                if (screenUrl.containsKey(density)){
-//                    play(screenUrl.get(density)!!)
-//                } else {
-//                    for ((key,url) in screenUrl ){
-//                        if (key < density){
-//                            play(url)
-//                            return
-//                        }
-//                    }
-//                }
-            }
-        }.extract(youtubeLink, true, false)
     }
 
     fun play(streamVideo: String) {
@@ -330,17 +280,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
         }
     }
 
-    fun loadVideo(videoId: String) {
-        video_error.visibility = View.GONE
-        playerView.visibility = View.VISIBLE
-        video_loading.visibility = View.VISIBLE
-        videoIdCurrent = videoId
-        ImageLoader.loadImagePlay(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + videoId,videoId)
-//        getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + videoId)
-        var intentServer = Intent(activity, YoutubeStreamService::class.java)
-        intentServer.putExtra("videoId",videoId)
-        activity!!.startService(intentServer)
-    }
+
 
     /**
      * playVideoWhenExitFullScreen
@@ -353,6 +293,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
      * playNewVideo
      */
     fun playNewVideo(obj:VideoTable){
+        this.playLocal = false
         closeVideo()
         videoPlay = obj
         myStream = ""
@@ -385,12 +326,26 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
             ImageLoader.loadImagePlay(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + obj.videoID,obj.videoID)
         }
 
-//        ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + obj.videoID,obj.videoID)
-//        getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + video.videoID)
         activity!!.stopService(Intent(activity, YoutubeStreamService::class.java))
         var intentServer = Intent(activity, YoutubeStreamService::class.java)
         intentServer.putExtra("videoId",obj.videoID)
         activity!!.startService(intentServer)
+    }
+    fun playVideoLocal(obj:VideoDownLoad){
+        this.playLocal = true
+        closeVideo()
+        videoPlay = obj
+        myStream = ""
+        isNewVideo = true
+        shouldAutoPlay = true
+        currentStop = 0
+        videoIdCurrent = obj.videoID
+        video_error.visibility = View.GONE
+        playerView.visibility = View.VISIBLE
+        video_loading.visibility = View.VISIBLE
+        ImageLoader.loadImagePlay(img_thumbnail, obj.thumbnails,obj.videoID)
+
+        play(obj.videoPath)
     }
     fun closeVideo(){
         releasePlayer()

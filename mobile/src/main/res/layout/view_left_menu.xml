@@ -24,9 +24,11 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/btn_list_history"
+        android:clickable="true"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@drawable/bg_rectange_white_border_botton"
+        android:background="@drawable/row_select_white_border_botton"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingLeft="@dimen/padding_10"
@@ -48,9 +50,10 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/btn_list_follow"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@drawable/bg_rectange_white_border_botton"
+        android:background="@drawable/row_select_white_border_botton"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingLeft="@dimen/padding_10"
@@ -72,9 +75,11 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/btn_list_download"
+        android:clickable="true"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@drawable/bg_rectange_white_border_botton"
+        android:background="@drawable/row_select_white_border_botton"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingLeft="@dimen/padding_10"

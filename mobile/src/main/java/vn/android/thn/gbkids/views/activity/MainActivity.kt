@@ -9,7 +9,6 @@ import android.os.StrictMode
 import android.view.View
 import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.presenter.MainPresenter
-import vn.android.thn.gbkids.views.fragment.NewFragment
 import android.support.design.widget.AppBarLayout
 import android.support.design.widget.CoordinatorLayout
 import android.support.v7.widget.Toolbar
@@ -25,9 +24,6 @@ import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.utils.LogUtils
 import vn.android.thn.gbkids.views.dialogs.HistoryKeyWordDialog
-import vn.android.thn.gbkids.views.fragment.PlayerFragment
-import vn.android.thn.gbkids.views.fragment.PlayerVideoListFragment
-import vn.android.thn.gbkids.views.fragment.SearchResultFragment
 import vn.android.thn.gbkids.views.listener.SearchListener
 import vn.android.thn.gbkids.views.view.ImageLoader
 import vn.android.thn.gbkids.views.view.ToolBarView
@@ -41,6 +37,7 @@ import jp.co.tss21.monistor.models.GBDataBase
 import vn.android.thn.gbfilm.views.dialogs.YoutubeDialog
 import vn.android.thn.gbkids.constants.RequestCode
 import vn.android.thn.gbkids.model.db.VideoDownLoad
+import vn.android.thn.gbkids.views.fragment.*
 import vn.android.thn.library.views.dialogs.GBDialogContentEntity
 
 
@@ -96,7 +93,15 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
 
         drawer_layout  = findViewById(R.id.drawer_layout)
         draggablePanel = findViewById(R.id.draggable_panel)!!
-
+        findViewById<View>(R.id.btn_list_download).setOnClickListener {
+            viewManager.pushView(ListDownloadFragment::class)
+        }
+        findViewById<View>(R.id.btn_list_history).setOnClickListener {
+            viewManager.pushView(ListHistoryFragment::class)
+        }
+        findViewById<View>(R.id.btn_list_follow).setOnClickListener {
+            viewManager.pushView(ListFollowFragment::class)
+        }
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
         showToolBar()
@@ -144,11 +149,20 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         draggablePanel.setBottomFragment(videoListPlayer);
         draggablePanel.setDraggableListener(object : DraggableListener{
             override fun onMaximized() {
-                if (videoPlay!= null){
-                    player.playNewVideo(videoPlay!!)
-                    videoListPlayer.loadNext(videoPlay!!)
-                    videoPlay = null
+                if(!playLocal){
+                    if (videoPlay!= null){
+                        player.playNewVideo(videoPlay!!)
+                        videoListPlayer.loadNext(videoPlay!!)
+                        videoPlay = null
+                    }
+                } else{
+                    if (videoPlayDownLoad!= null){
+                        player.playVideoLocal(videoPlayDownLoad!!)
+                        videoListPlayer.loadVideoDownLoad(videoPlayDownLoad!!)
+                        videoPlayDownLoad = null
+                    }
                 }
+
                 drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
             }
 
@@ -169,14 +183,29 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         })
         draggablePanel.initializeView()
     }
-     var  videoPlay:VideoTable? = null
+    var  videoPlay:VideoTable? = null
+    var  videoPlayDownLoad:VideoDownLoad? = null
+    var playLocal = false
     fun showPlayer(videoId:VideoTable,isShow:Boolean = true){
-
+        playLocal = false
         videoPlay = videoId
         if (draggablePanel.visibility !=View.VISIBLE) {
             top_view_video.viewTreeObserver.addOnGlobalLayoutListener( this)
             draggablePanel.visibility = View.INVISIBLE
             loadThumbnail(videoId.videoID)
+        } else {
+            draggablePanel.maximize()
+
+        }
+    }
+    fun showPlayerDownLoad(videoId:VideoDownLoad,isShow:Boolean = true){
+        playLocal = true
+        videoPlayDownLoad = videoId
+        if (draggablePanel.visibility !=View.VISIBLE) {
+            top_view_video.viewTreeObserver.addOnGlobalLayoutListener( this)
+            draggablePanel.visibility = View.INVISIBLE
+//            loadThumbnail(videoId.videoID)
+            ImageLoader.loadImage(thumbnail_video, videoPlayDownLoad!!.thumbnails,videoPlayDownLoad!!.videoID)
         } else {
             draggablePanel.maximize()
 

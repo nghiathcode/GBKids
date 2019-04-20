@@ -27,7 +27,7 @@ import vn.android.thn.library.utils.GBUtils
 // Created by NghiaTH on 2/27/19.
 // Copyright (c) 2019
 
-class PlayListAdapter(private val mContext: Context, var list: MutableList<VideoTable>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val TYPE_DATA = 0
     private val TYPE_LOAD_MORE = 1
     private val TYPE_HEADER = 2
@@ -36,6 +36,7 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Video
     var loadMoreListener: LoadMoreListener? = null
     var headerData:VideoTable? = null
     var channelLogoEntity:ChannelLogoEntity? = null
+    var localList = false
     fun loadHeader(headerData:VideoTable){
         this.headerData = headerData
         notifyDataSetChanged()
@@ -54,7 +55,9 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Video
     }
 
     override fun getItemViewType(position: Int): Int {
-        if (position == 0) return TYPE_HEADER
+        if (!localList) {
+            if (position == 0) return TYPE_HEADER
+        }
         if (isLoadMore) {
             if (position == (list.size +1)) {
                 return TYPE_LOAD_MORE
@@ -87,7 +90,12 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Video
         if (isLoadMore) {
             return list.size + 2
         } else {
-            return list.size + 1
+            if (localList){
+                return list.size
+            } else {
+                return list.size + 1
+            }
+
         }
     }
 
@@ -97,7 +105,11 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Video
             return
         }
         if (getItemViewType(position) == TYPE_DATA) {
-            (holder as PlayListAdapter.ViewHolder).bindData(list.get(position - 1))
+            if (localList) {
+                (holder as PlayListAdapter.ViewHolder).bindData(list.get(position ))
+            } else {
+                (holder as PlayListAdapter.ViewHolder).bindData(list.get(position - 1))
+            }
         } else {
             (holder as PlayListAdapter.ViewHolderLoadMore).onLoadMore()
         }
@@ -171,9 +183,9 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Video
                 if (channelLogoEntity!!.high!= null){
                  url = channelLogoEntity!!.high!!.url
                 } else if (channelLogoEntity!!.medium!= null){
-                    url = channelLogoEntity!!.high!!.url
+                    url = channelLogoEntity!!.medium!!.url
                 }else if(channelLogoEntity!!.default!= null){
-                    url = channelLogoEntity!!.high!!.url
+                    url = channelLogoEntity!!.default!!.url
                 }
                 ImageLoader.loadImageCricle(img_channel, url)
             } else {
@@ -192,36 +204,48 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Video
             txt_info = itemView.findViewById(R.id.txt_info)
             itemView.setOnClickListener {
                 if (listener != null) {
-                    listener!!.onItemClick(list.get(layoutPosition-1), layoutPosition-1)
+                    if (!localList) {
+                        listener!!.onItemClick(list.get(layoutPosition - 1), layoutPosition - 1)
+                    } else {
+                        listener!!.onItemClick(list.get(layoutPosition ), layoutPosition )
+                    }
                 }
             }
         }
 
-        fun bindData(obj: VideoTable) {
-            txt_name.text = obj.title
-            if (App.getInstance().appStatus == 1) {
-                if (GBUtils.isEmpty(obj.urlImage)) {
-                    var thumbnails = obj.toImage()
-                    if (thumbnails != null) {
-                        if (thumbnails.maxres != null) {
-                            obj.urlImage = thumbnails!!.maxres!!.url
-                        } else if (thumbnails.high != null) {
-                            obj.urlImage = thumbnails!!.high!!.url
-                        } else if (thumbnails.medium != null) {
-                            obj.urlImage = thumbnails!!.medium!!.url
-                        } else if (thumbnails.standard != null) {
-                            obj.urlImage = thumbnails!!.standard!!.url
-                        } else if (thumbnails.default != null) {
-                            obj.urlImage = thumbnails!!.default!!.url
+        fun bindData(obj: Any) {
+            if (obj is VideoTable) {
+                txt_name.text = obj.title
+                if (App.getInstance().appStatus == 1) {
+                    if (GBUtils.isEmpty(obj.urlImage)) {
+                        var thumbnails = obj.toImage()
+                        if (thumbnails != null) {
+                            if (thumbnails.maxres != null) {
+                                obj.urlImage = thumbnails!!.maxres!!.url
+                            } else if (thumbnails.high != null) {
+                                obj.urlImage = thumbnails!!.high!!.url
+                            } else if (thumbnails.medium != null) {
+                                obj.urlImage = thumbnails!!.medium!!.url
+                            } else if (thumbnails.standard != null) {
+                                obj.urlImage = thumbnails!!.standard!!.url
+                            } else if (thumbnails.default != null) {
+                                obj.urlImage = thumbnails!!.default!!.url
+                            }
                         }
                     }
+                    ImageLoader.loadImage(img_thumbnail, obj.urlImage, obj.videoID)
+                } else {
+                    ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + obj.videoID, obj.videoID)
                 }
-                ImageLoader.loadImage(img_thumbnail, obj.urlImage, obj.videoID)
-            } else {
-                ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + obj.videoID, obj.videoID)
-            }
 
-            txt_info.text = obj.channelTitle
+                txt_info.text = obj.channelTitle
+                return
+            }
+            if (obj is VideoDownLoad) {
+                txt_name.text = obj.title
+                ImageLoader.loadImage(img_thumbnail, obj.thumbnails, obj.videoID)
+                txt_info.text = obj.channelTitle
+            }
         }
     }
 }
