@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
           package="vn.android.thn.gbkids">
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-feature
             android:name="android.hardware.touchscreen.multitouch"
-            android:required="false" />
+            android:required="false"/>
     <application
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
@@ -25,32 +25,32 @@
                 android:exported="false">
         </provider>
         <provider
-            android:authorities="vn.android.thn.gbkids.fileprovider"
-            android:name="android.support.v4.content.FileProvider"
-            android:exported="false"
-            android:grantUriPermissions="true">
+                android:authorities="vn.android.thn.gbkids.fileprovider"
+                android:name="android.support.v4.content.FileProvider"
+                android:exported="false"
+                android:grantUriPermissions="true">
             <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/file_paths"></meta-data>
         </provider>
         <meta-data android:name="com.google.android.gms.version"
-                   android:value="@integer/google_play_services_version" />
+                   android:value="@integer/google_play_services_version"/>
         <meta-data
                 android:name="com.google.android.gms.ads.APPLICATION_ID"
                 android:value="ca-app-pub-2223782486826233~5811460961"/>
         <meta-data
                 android:name="AA_DB_NAME"
-                android:value="gb_kids.db" />
+                android:value="gb_kids.db"/>
         <meta-data
                 android:name="AA_DB_VERSION"
-                android:value="1" />
+                android:value="1"/>
         <meta-data
                 android:name="AA_MODELS"
                 android:value="vn.android.thn.gbkids.model.db.VideoTable,
                                 vn.android.thn.gbkids.model.db.AppSetting,
                                 vn.android.thn.gbkids.model.db.KeyWordHistory,
                                 vn.android.thn.gbkids.model.db.VideoDownLoad,
-                                vn.android.thn.gbkids.model.db.FollowTable" />
+                                vn.android.thn.gbkids.model.db.FollowTable"/>
         <activity
                 android:name=".views.activity.MainActivity"
                 android:configChanges="orientation|keyboardHidden|screenSize|locale"
@@ -80,6 +80,11 @@
         <service android:name=".views.services.YoutubeStreamService"/>
         <service android:name=".views.services.VideoDeleteService"/>
         <service android:name=".views.services.DownLoadVideoService"/>
+        <receiver android:name=".views.services.CompleteReciver">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -37,8 +37,10 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
+import jp.co.tss21.monistor.models.GBDataBase
 import vn.android.thn.gbfilm.views.dialogs.YoutubeDialog
 import vn.android.thn.gbkids.constants.RequestCode
+import vn.android.thn.gbkids.model.db.VideoDownLoad
 import vn.android.thn.library.views.dialogs.GBDialogContentEntity
 
 
@@ -344,7 +346,17 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
     }
     fun downLoadVideo(){
         if (videoTableDownload!= null) {
-            app.downloadVideo(videoTableDownload!!.videoID)
+            var data = GBDataBase.getObject(VideoDownLoad::class.java, "videoID=?", *arrayOf(videoTableDownload!!.videoID))
+            if (data == null){
+                data = VideoDownLoad()
+                data.videoID = videoTableDownload!!.videoID
+                data.channelID = videoTableDownload!!.channelID
+                data.title = videoTableDownload!!.title
+                data.channelTitle = videoTableDownload!!.channelTitle
+                data.thumbnails = videoTableDownload!!.thumbnails
+                data.save()
+                app.downloadVideo(videoTableDownload!!.videoID)
+            }
         }
     }
     fun checkDownload(videoTableDownload: VideoTable){

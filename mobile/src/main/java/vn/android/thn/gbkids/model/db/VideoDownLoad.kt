@@ -16,4 +16,13 @@ class VideoDownLoad : Model() {
     var channelID: String =""
     @Column(name = "channelTitle")
     var channelTitle: String=""
+    @Column(name = "isComplete")
+    var isComplete: Int= 0
+    @Column(name = "videoName")
+    var videoName = ""
+    @Column(name = "imageName")
+    var imageName = ""
+    //
+    @Column(name = "videoPath")
+    var videoPath = ""
 }
