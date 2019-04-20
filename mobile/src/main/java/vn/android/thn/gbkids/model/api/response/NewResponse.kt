@@ -65,8 +65,8 @@ class NewResponse:GBTubeResponse() {
             }
             this.data.add(obj)
         }
-        if (this.data.size>0){
-            GBDataBase.insertList(this.data)
-        }
+//        if (this.data.size>0){
+//            GBDataBase.insertList(this.data)
+//        }
     }
 }

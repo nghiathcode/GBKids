@@ -100,17 +100,30 @@ class SearchListAdapter (private val mContext: Context, var list: MutableList<Vi
             if (App.getInstance().appStatus == 1){
                 if (GBUtils.isEmpty(obj.urlImage)){
                     var thumbnails =obj.toImage()
+//                    if (thumbnails!= null) {
+//                        if (thumbnails.default != null) {
+//                            obj.urlImage = thumbnails!!.default!!.url
+//                        } else if (thumbnails.medium != null) {
+//                            obj.urlImage = thumbnails!!.medium!!.url
+//                        } else if (thumbnails.standard != null) {
+//                            obj.urlImage = thumbnails!!.standard!!.url
+//                        }else if (thumbnails.high != null) {
+//                            obj.urlImage = thumbnails!!.high!!.url
+//                        } else{
+//                            obj.urlImage = thumbnails!!.maxres!!.url
+//                        }
+//                    }
                     if (thumbnails!= null) {
-                        if (thumbnails.default != null) {
-                            obj.urlImage = thumbnails!!.default!!.url
+                        if (thumbnails.maxres != null) {
+                            obj.urlImage = thumbnails!!.maxres!!.url
+                        } else if (thumbnails.high != null) {
+                            obj.urlImage = thumbnails!!.high!!.url
                         } else if (thumbnails.medium != null) {
-                            obj.urlImage = thumbnails!!.medium!!.url
+                            obj.urlImage =  thumbnails!!.medium!!.url
                         } else if (thumbnails.standard != null) {
                             obj.urlImage = thumbnails!!.standard!!.url
-                        }else if (thumbnails.high != null) {
-                            obj.urlImage = thumbnails!!.high!!.url
-                        } else{
-                            obj.urlImage = thumbnails!!.maxres!!.url
+                        } else if (thumbnails.default != null) {
+                            obj.urlImage = thumbnails!!.default!!.url
                         }
                     }
                 }
@@ -121,6 +134,5 @@ class SearchListAdapter (private val mContext: Context, var list: MutableList<Vi
 
             txt_info.text = obj.channelTitle
         }
-
     }
 }

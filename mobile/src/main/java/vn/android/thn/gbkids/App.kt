@@ -23,6 +23,7 @@ import vn.android.thn.gbfilm.views.listener.YoutubeStreamListener
 import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.model.db.AppSetting
 import vn.android.thn.gbkids.model.entity.StreamEntity
+import vn.android.thn.gbkids.views.services.DownLoadVideoService
 import vn.android.thn.gbkids.views.services.YoutubeStreamService
 import vn.android.thn.library.utils.GBUtils
 import java.io.File
@@ -38,6 +39,7 @@ class App : Application() {
     val builder = GsonBuilder().excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
     val gson = builder.create()
     var appStatus:Int = 0
+    var playCount:Long = 0
     var mYoutubeStreamListener: YoutubeStreamListener? = null
     private var downloadDirectory: File? = null
     private var downloadCache: Cache? = null
@@ -107,7 +109,7 @@ class App : Application() {
         return  "android"
     }
     fun getAppId():String{
-        return "vn.android.thn.gbkids"
+        return "vn.thn.app.gbkids"
     }
     /**
      *getDeviceId
@@ -151,7 +153,11 @@ class App : Application() {
         intentService.putExtra("videoId",videoId)
         startService(intentService)
     }
-
+    fun downloadVideo(videoId:String){
+        val intentService = Intent(this, DownLoadVideoService::class.java)
+        intentService.putExtra("videoId",videoId)
+        startService(intentService)
+    }
     /** Returns whether extension renderers should be used.  */
     fun useExtensionRenderers(): Boolean {
         return "withExtensions" == BuildConfig.FLAVOR

@@ -9,10 +9,13 @@ import at.huber.youtubeExtractor.YouTubeExtractor
 import at.huber.youtubeExtractor.YtFile
 import vn.android.thn.gbkids.App
 import vn.android.thn.gbkids.constants.Constants
+import vn.android.thn.gbkids.model.api.GBRequestName
+import vn.android.thn.gbkids.model.api.GBTubeRequestCallBack
+import vn.android.thn.gbkids.model.api.request.GBTubeRequest
+import vn.android.thn.gbkids.model.api.response.GBTubeResponse
 import vn.android.thn.gbkids.model.entity.StreamEntity
 import vn.android.thn.gbkids.utils.LogUtils
-import vn.android.thn.gbkids.utils.Utils
-import vn.android.thn.library.utils.GBLog
+import vn.android.thn.library.net.GBRequestError
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -25,9 +28,11 @@ import java.net.URL
 class YoutubeStreamService() : IntentService("YoutubeStreamService") {
 
     var videoId = ""
+
     var stream_list:ArrayList<StreamEntity> = ArrayList<StreamEntity>()
     override fun onHandleIntent(intent: Intent?) {
         videoId = intent!!.getStringExtra("videoId")
+
         getYoutubeDownloadUrl("https://www.youtube.com/watch?v=" + videoId)
 
 
@@ -49,14 +54,11 @@ class YoutubeStreamService() : IntentService("YoutubeStreamService") {
                     // ytFile represents one file with its url and meta data
                     val ytFile = ytFiles.get(itag)
                     // Just add videos in a decent format => height -1 = audio
-                    if (ytFile.format.height > -1 ) {
-
+                    if (ytFile.getFormat().getHeight() >= 360){
                         if (ytFile.url.contains("ratebypass",true)) {
-                            if (isConnect(ytFile.url)){
-                                stream_list.add(StreamEntity(ytFile.url,ytFile.format.height))
-                                LogUtils.info("URL_STREAM_VideoID",ytFile.url)
-                            }
 
+                            stream_list.add(StreamEntity(ytFile.url,ytFile.format.height))
+                            LogUtils.info("URL_STREAM_VideoID",ytFile.url)
                         }
 
                     }
@@ -67,26 +69,6 @@ class YoutubeStreamService() : IntentService("YoutubeStreamService") {
         }.extract(youtubeLink, true, false)
     }
 
-    private fun isConnect(url_check: String): Boolean {
-        var con: HttpURLConnection? = null
-        try {
-            val url = URL(url_check)
-            con = url.openConnection() as HttpURLConnection
-            con!!.setConnectTimeout(100)
-            val response_code = con!!.getResponseCode()
-            con!!.disconnect()
-            if (response_code == 200) {
-                return true
-            } else {
-                LogUtils.info("URL_STREAM_VideoID_error_3:", "no connect")
-                return false
-            }
-        } catch (e: IOException) {
-            LogUtils.info("URL_STREAM_VideoID_error_4:",  "")
-            return false
-        }
-
-    }
     private fun sendStream(){
         val sender = Intent()
         val bundle = Bundle()
@@ -94,5 +76,18 @@ class YoutubeStreamService() : IntentService("YoutubeStreamService") {
         bundle.putSerializable("stream_list", stream_list)
         sender.putExtras(bundle)
         sendBroadcast(sender)
+        if (stream_list.size>0){
+            val api = GBTubeRequest(GBRequestName.COUNT_PLAY,null)
+            api.get().execute(object : GBTubeRequestCallBack {
+                override fun onResponse(httpCode: Int, response: GBTubeResponse, request: GBTubeRequest) {
+
+                }
+
+                override fun onRequestError(errorRequest: GBRequestError, request: GBTubeRequest) {
+
+                }
+
+            })
+        }
     }
 }

@@ -1,6 +1,9 @@
 package vn.android.thn.gbkids.views.activity
 
+import android.Manifest
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.view.View
@@ -30,8 +33,13 @@ import vn.android.thn.gbkids.views.view.ImageLoader
 import vn.android.thn.gbkids.views.view.ToolBarView
 import vn.android.thn.gbkids.views.view.ToolBarViewType
 import android.os.StrictMode.setThreadPolicy
-
-
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.support.v4.view.GravityCompat
+import android.support.v4.widget.DrawerLayout
+import vn.android.thn.gbfilm.views.dialogs.YoutubeDialog
+import vn.android.thn.gbkids.constants.RequestCode
+import vn.android.thn.library.views.dialogs.GBDialogContentEntity
 
 
 //
@@ -63,7 +71,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
     override fun onRegister() {
         viewManager.addView(NewFragment::class)
     }
-
+    lateinit var drawer_layout: DrawerLayout
     lateinit var presenter: MainPresenter
     lateinit var txt_key_word:TextView
     lateinit var draggablePanel: DraggablePanel
@@ -74,6 +82,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
      var player =PlayerFragment()
      var videoListPlayer =PlayerVideoListFragment()
     lateinit var top_view_video:View
+    var videoTableDownload:VideoTable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         presenter = MainPresenter(this,this)
@@ -82,15 +91,22 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
             StrictMode.setThreadPolicy(policy)
         }
+
+        drawer_layout  = findViewById(R.id.drawer_layout)
         draggablePanel = findViewById(R.id.draggable_panel)!!
 
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
         showToolBar()
         toolbar.setNavigationOnClickListener {
-            onBackPressed()
+            if (supportFragmentManager.backStackEntryCount == 0){
+                drawer_layout!!.openDrawer(GravityCompat.START)
+            } else {
+                onBackPressed()
+            }
             viewManager.hideKeyboard()
         }
+
         top_view_video = findViewById(R.id.top_view_video)
         view_search_bar = findViewById(R.id.view_search_bar)
         mn_action_search = findViewById(R.id.mn_action_search)
@@ -120,7 +136,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         ImageLoader.loadImage(thumbnail_video, Constants.DOMAIN+"/thumbnail_high/"+videoId,videoId)
     }
     fun initPlayView(){
-
+        player.listener = videoListPlayer
         draggablePanel.setFragmentManager(supportFragmentManager);
         draggablePanel.setTopFragment(player);
         draggablePanel.setBottomFragment(videoListPlayer);
@@ -131,10 +147,11 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
                     videoListPlayer.loadNext(videoPlay!!)
                     videoPlay = null
                 }
+                drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
             }
 
             override fun onMinimized() {
-
+                drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
             }
 
             override fun onClosedToLeft() {
@@ -152,6 +169,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
     }
      var  videoPlay:VideoTable? = null
     fun showPlayer(videoId:VideoTable,isShow:Boolean = true){
+
         videoPlay = videoId
         if (draggablePanel.visibility !=View.VISIBLE) {
             top_view_video.viewTreeObserver.addOnGlobalLayoutListener( this)
@@ -159,6 +177,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             loadThumbnail(videoId.videoID)
         } else {
             draggablePanel.maximize()
+
         }
     }
     fun updateHeightVideoPlay(height:Int){
@@ -201,8 +220,10 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             if (supportFragmentManager.backStackEntryCount == 0){
                 getSupportActionBar()!!.setDisplayHomeAsUpEnabled(true)
                 getSupportActionBar()!!.setDisplayShowHomeEnabled(true)
-                toolbar.setNavigationIcon(null)
+                toolbar.setNavigationIcon(R.drawable.ico_menu)
+                drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
             } else {
+                drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
                 getSupportActionBar()!!.setDisplayHomeAsUpEnabled(true)
                 getSupportActionBar()!!.setDisplayShowHomeEnabled(true)
                 toolbar.setNavigationIcon(R.drawable.ico_mn_back)
@@ -248,6 +269,12 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         if (draggablePanel.visibility == View.VISIBLE && draggablePanel.isMaximized){
             draggablePanel.closeToLeft()
         } else {
+            if (supportFragmentManager.backStackEntryCount == 0){
+                if (drawer_layout!!.isDrawerOpen(GravityCompat.START)) {
+                    drawer_layout!!.closeDrawers()
+                    return
+                }
+            }
             super.onBackPressed()
             viewManager.hideKeyboard()
         }
@@ -257,5 +284,111 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
     }
     fun addBannerAds(){}
     fun loadBannerAds(){}
+    fun requestStoragePermissions() {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+            val lPermissions =
+                    arrayOf<String>(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+            val lPermissionsRead = arrayOf<String>(Manifest.permission.READ_EXTERNAL_STORAGE)
+            val permissionCheck =
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            val permissionCheckRead =
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+            if (permissionCheck == PackageManager.PERMISSION_GRANTED && permissionCheckRead == PackageManager.PERMISSION_GRANTED) {
+                downLoadVideo()
+            } else if (permissionCheck == PackageManager.PERMISSION_DENIED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(
+                                this,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        )
+                ) {
+                    //show popup require Permissions
+                    val dialogContent= GBDialogContentEntity()
+                    dialogContent.layoutId = R.layout.dialog_require_permissions
+                    dialogContent.listButton.put(R.id.btn_dialog_left,"No")
+                    dialogContent.listButton.put(R.id.btn_dialog_right,"Yes")
+                    dialogContent.message = "please allow GBKids have Permissions on Storage"
+                    dialogContent.buttonClick = object :View.OnClickListener{
+                        override fun onClick(v: View?) {
+                            if (v!= null){
+                                val lPermissions = arrayOf<String>(
+                                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                        Manifest.permission.READ_EXTERNAL_STORAGE
+                                )
+                                if (v.id == R.id.btn_dialog_left) {
+                                    viewManager.hideDialog()
+                                }
+                                if (v.id == R.id.btn_dialog_right) {
+                                    viewManager.hideDialog()
+                                    ActivityCompat.requestPermissions(
+                                            this@MainActivity,
+                                            lPermissions,
+                                            RequestCode.WRITE_EXTERNAL_STORAGE.value
+                                    );
+                                }
+                            }
+                        }
+                    }
+                    viewManager.showDialog(YoutubeDialog.newInstance(dialogContent))
 
+                } else {
+                    ActivityCompat.requestPermissions(
+                            this,
+                            lPermissions,
+                            RequestCode.WRITE_EXTERNAL_STORAGE.value
+                    )
+                }
+            }
+        } else {
+            downLoadVideo()
+        }
+    }
+    fun downLoadVideo(){
+        if (videoTableDownload!= null) {
+            app.downloadVideo(videoTableDownload!!.videoID)
+        }
+    }
+    fun checkDownload(videoTableDownload: VideoTable){
+        this.videoTableDownload = videoTableDownload
+        requestStoragePermissions()
+    }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (grantResults.size != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (requestCode == RequestCode.WRITE_EXTERNAL_STORAGE.value) {
+                downLoadVideo()
+                return
+            }
+        } else {
+            if (requestCode == RequestCode.WRITE_EXTERNAL_STORAGE.value) {
+                //show popup require Permissions
+                val dialogContent= GBDialogContentEntity()
+                dialogContent.layoutId = R.layout.dialog_require_permissions
+                dialogContent.listButton.put(R.id.btn_dialog_left,"No")
+                dialogContent.listButton.put(R.id.btn_dialog_right,"Yes")
+                dialogContent.message = "please allow GBKids have Permissions on Storage"
+                dialogContent.buttonClick = object :View.OnClickListener{
+                    override fun onClick(v: View?) {
+                        if (v!= null){
+                            val lPermissions = arrayOf<String>(
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                    Manifest.permission.READ_EXTERNAL_STORAGE
+                            )
+                            if (v.id == R.id.btn_dialog_left) {
+                                viewManager.hideDialog()
+                            }
+                            if (v.id == R.id.btn_dialog_right) {
+                                viewManager.hideDialog()
+                                ActivityCompat.requestPermissions(
+                                        this@MainActivity,
+                                        lPermissions,
+                                        RequestCode.WRITE_EXTERNAL_STORAGE.value
+                                );
+                            }
+                        }
+                    }
+                }
+                viewManager.showDialog(YoutubeDialog.newInstance(dialogContent))
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
 }

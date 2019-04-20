@@ -5,6 +5,8 @@
     android:id="@+id/menu_item_card_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/margin_5"
+    android:layout_marginBottom="@dimen/margin_5"
     android:orientation="vertical"
     card_view:cardCornerRadius="@dimen/cardview_default_radius"
     card_view:cardElevation="0dp">
@@ -12,26 +14,28 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_5"
+        android:layout_gravity="center_vertical"
+        android:paddingLeft="@dimen/padding_10"
         android:orientation="horizontal">
 
         <RelativeLayout
-            android:layout_width="@dimen/view_120"
-            android:layout_height="@dimen/view_90">
+
+            android:layout_width="@dimen/view_150"
+            android:layout_height="@dimen/view_120"
+            android:layout_marginTop="-20dp">
 
             <ImageView
                 android:id="@+id/img_thumbnail"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="-30dp"
-                android:layout_marginBottom="-30dp"
-                android:adjustViewBounds="true" />
+                android:adjustViewBounds="true"
+                android:layout_marginBottom="-20dp"/>
 
             <ImageView
                 android:layout_width="@dimen/view_40"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
-                android:layout_marginTop="@dimen/padding_15"
+                android:layout_marginTop="@dimen/padding_25"
                 android:layout_marginRight="10dp"
                 android:adjustViewBounds="true"
                 android:background="@color/bg_white"
@@ -50,16 +54,19 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="3"
-
-                android:textColor="@color/txt_black"
-                tool:text="title" />
+                android:text=""
+                tool:text="title Video"
+                android:textColor="@color/txt_black" />
 
             <TextView
                 android:id="@+id/txt_info"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="bottom"
                 android:ellipsize="end"
-                android:lines="1"
+                android:maxLines="2"
+                tool:text="title channel"
+                android:text=""
                 android:textColor="@color/text_gray" />
         </LinearLayout>
 

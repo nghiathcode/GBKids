@@ -1,31 +1,30 @@
 package vn.android.thn.gbkids.views.fragment
 
-import android.app.Dialog
+
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.util.DisplayMetrics
 import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.widget.FrameLayout
+
 import android.widget.ImageView
 import android.widget.TextView
 import at.huber.youtubeExtractor.VideoMeta
 import at.huber.youtubeExtractor.YouTubeExtractor
 import at.huber.youtubeExtractor.YtFile
-import com.google.android.exoplayer2.ExoPlayerFactory
-import com.google.android.exoplayer2.PlaybackPreparer
-import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.source.ExtractorMediaSource
-import com.google.android.exoplayer2.source.LoopingMediaSource
+
+import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.trackselection.TrackSelection
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
@@ -84,7 +83,11 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                 }
             }
             LogUtils.info("Play_URL:",obj_steam.quality.toString())
+            if (videoPlay!= null){
+                videoPlay!!.save()
+            }
             play(obj_steam.url)
+
 
         }
 
@@ -117,6 +120,8 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     lateinit var video_error:TextView
     var app = App.getInstance()
     var videoIdCurrent = ""
+    lateinit var listener:PlayerListener
+    var videoPlay:VideoTable? = null
     override fun preparePlayback() {
         LogUtils.info(TAG, "preparePlayback")
     }
@@ -157,6 +162,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
             (activity as MainActivity).viewManager.showDialog(mFullScreenDialog)
         }
         fragmentView = view!!
+
         return view
     }
 
@@ -264,6 +270,56 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                 }
 
             })
+            player!!.addListener(object :Player.EventListener{
+                override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
+                    LogUtils.info(TAG, "onPlaybackParametersChanged")
+                }
+
+                override fun onSeekProcessed() {
+                    LogUtils.info(TAG, "onSeekProcessed")
+                }
+
+                override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
+                    LogUtils.info(TAG, "onTracksChanged")
+                }
+
+                override fun onPlayerError(error: ExoPlaybackException?) {
+                    LogUtils.info(TAG, "onPlayerError")
+                }
+
+                override fun onLoadingChanged(isLoading: Boolean) {
+                    LogUtils.info(TAG, "onLoadingChanged")
+                }
+
+                override fun onPositionDiscontinuity(reason: Int) {
+                    LogUtils.info(TAG, "onPositionDiscontinuity")
+                }
+
+                override fun onRepeatModeChanged(repeatMode: Int) {
+                    LogUtils.info(TAG, "onRepeatModeChanged")
+                }
+
+                override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                    LogUtils.info(TAG, "onShuffleModeEnabledChanged")
+                }
+
+                override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
+                    LogUtils.info(TAG, "onTimelineChanged")
+                }
+
+                override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                    LogUtils.info(TAG, "onPlayerStateChanged")
+                    if (playbackState ==Player.STATE_ENDED){
+                        LogUtils.info(TAG, "onPlayerStateChanged:END VIDEO")
+                        val obj = listener.nextVideo()
+                        if (obj!= null){
+                            playNewVideo(obj)
+                        }
+
+                    }
+                }
+
+            })
             playerView.useController = true
             playerView.player = player
             playerView.setPlaybackPreparer(this)
@@ -298,6 +354,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
      */
     fun playNewVideo(obj:VideoTable){
         closeVideo()
+        videoPlay = obj
         myStream = ""
         isNewVideo = true
         shouldAutoPlay = true
@@ -389,5 +446,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
             LogUtils.info(TAG, "onGlobalLayout:" + img_thumbnail.measuredHeight.toString())
         }
     }
-
+    interface PlayerListener{
+        fun nextVideo():VideoTable?
+    }
 }

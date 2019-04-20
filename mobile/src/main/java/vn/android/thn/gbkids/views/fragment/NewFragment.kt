@@ -75,9 +75,9 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
 
         swipeRefreshLayout.setColorSchemeResources(
             *intArrayOf(
-                R.color.colorPrimaryDark,
-                R.color.colorPrimaryDark,
-                R.color.colorPrimaryDark
+                R.color.loading,
+                R.color.loading,
+                R.color.loading
             )
         )
         swipeRefreshLayout.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener {

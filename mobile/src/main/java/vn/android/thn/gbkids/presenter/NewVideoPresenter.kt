@@ -42,6 +42,8 @@ class NewVideoPresenter(mvp: SearchMvp, mActivity: FragmentActivity?) :
                         }
                     } else if (result!!.error.errorCode == ResponseCode.TOKEN_EXPIRED){
                         refreshToken(request.mRequestName)
+                    } else if (result!!.error.errorCode == ResponseCode.TOKEN_REGISTER){
+                        registerToken(request.mRequestName)
                     } else{
                         if (isShowPopup) {
                             hideLoading()
@@ -55,6 +57,13 @@ class NewVideoPresenter(mvp: SearchMvp, mActivity: FragmentActivity?) :
 
     }
 
+    override fun onRegisterTokenComplete(requestName: String) {
+        if (requestName.equals(GBRequestName.NEW,true)){
+            loadNew(0,true)
+        } else {
+            hideLoading()
+        }
+    }
     override fun onRefreshComplete(requestName: String) {
         if (requestName.equals(GBRequestName.NEW,true)){
             loadNew(0,true)

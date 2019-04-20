@@ -28,7 +28,7 @@ open class GBTubeRequest: GBRequest {
             addHeader("token", app.appSetting()!!.token)
 
         }
-        addHeader("appId", "vn.android.thn.gbkids")
+        addHeader("appId", app.getAppId())
         addHeader("osType","0")
         addHeader("deviceType","0")
     }

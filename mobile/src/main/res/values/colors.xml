@@ -8,6 +8,7 @@
     <color name="txt_white">#FFFFFF</color>
     <color name="bg_white">#FFFFFF</color>
     <color name="transparent">#00000000</color>
+    <color name="loading">#ED502F</color>
     <color name="bg_load_data">#80000000</color>
     <color name="stroke">#b1b1b1</color>
     <color name="left_menu_bg">#ffffff</color>

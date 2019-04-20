@@ -1,28 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:app="http://schemas.android.com/apk/res-auto"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:id="@+id/root"
-             android:focusable="true"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:keepScreenOn="true"
-             tools:context=".views.activity.VideoPlayerActivity"
->
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:keepScreenOn="true"
+    tools:context=".views.activity.VideoPlayerActivity">
 
     <com.google.android.exoplayer2.ui.PlayerView
-            android:id="@+id/player_view"
-            android:focusable="true"
-            android:layout_width="match_parent"
-            app:resize_mode="fixed_width"
-            android:layout_height="wrap_content">
+        android:id="@+id/player_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        app:resize_mode="fixed_width">
 
         <ProgressBar
-                android:id="@+id/progress_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone"/>
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
 
     </com.google.android.exoplayer2.ui.PlayerView>
 

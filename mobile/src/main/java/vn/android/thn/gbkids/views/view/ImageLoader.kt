@@ -1,10 +1,14 @@
 package vn.android.thn.gbkids.views.view
 
+import android.graphics.Bitmap
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.GlideDrawable
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.bumptech.glide.request.target.Target
 
 import vn.android.thn.gbkids.R
@@ -100,6 +104,33 @@ class ImageLoader {
                     .error(R.drawable.ico_no_image_row)
                     .placeholder(R.drawable.placeholder)
                     .into(imageView)
+            }
+        }
+        fun loadImageCricle(imageView: ImageView, url:String?=null){
+            if (GBUtils.isEmpty(url)){
+                imageView.setImageResource(R.drawable.ico_no_image_row)
+            } else {
+//                Glide.with(imageView.context).load(url).asBitmap().centerCrop().into(object : BitmapImageViewTarget(imageView) {
+//                    override fun setResource(resource: Bitmap) {
+//                        val circularBitmapDrawable = RoundedBitmapDrawableFactory.create(context.getResources(), resource)
+//                        circularBitmapDrawable.isCircular = true
+//                        imageView.setImageDrawable(circularBitmapDrawable)
+//                    }
+//                })
+
+                Glide.with(imageView.context)
+                        .load(url).asBitmap().centerCrop()
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .error(R.drawable.ico_no_image_row)
+                        .placeholder(R.drawable.placeholder)
+                        .into(object :BitmapImageViewTarget(imageView){
+                            override fun setResource(resource: Bitmap?) {
+                                val circularBitmapDrawable =
+                                RoundedBitmapDrawableFactory.create(imageView.context.getResources(), resource)
+                                circularBitmapDrawable.setCircular(true);
+                                imageView.setImageDrawable(circularBitmapDrawable)
+                            }
+                        })
             }
         }
     }

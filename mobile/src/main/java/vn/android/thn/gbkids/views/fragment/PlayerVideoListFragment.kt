@@ -10,10 +10,13 @@ import android.view.View
 import android.view.ViewGroup
 import vn.android.thn.gbfilm.views.listener.ListItemListener
 import vn.android.thn.gbfilm.views.listener.LoadMoreListener
+import vn.android.thn.gbfilm.views.listener.PlayListItemListener
 import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.model.db.VideoTable
+import vn.android.thn.gbkids.model.entity.ChannelLogoEntity
 import vn.android.thn.gbkids.presenter.NextVideoPresenter
 import vn.android.thn.gbkids.views.activity.MainActivity
+import vn.android.thn.gbkids.views.adapter.PlayListAdapter
 import vn.android.thn.gbkids.views.adapter.SearchListAdapter
 import java.util.ArrayList
 
@@ -22,11 +25,26 @@ import java.util.ArrayList
 // Created by NghiaTH on 3/19/19.
 // Copyright (c) 2019
 
-class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, ListItemListener, LoadMoreListener {
+class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, PlayListItemListener, LoadMoreListener ,
+    PlayerFragment.PlayerListener {
+    override fun nextVideo():VideoTable? {
+        indexPlay = indexPlay+1
+        if (list.size>indexPlay){
+           var data = list.get(indexPlay)
+            adapter.loadHeader(data)
+            presenter.channelLogo(data.channelID)
+            return data
+        }
+        return null
+    }
     override fun onItemClick(obj: Any, pos: Int) {
         (activity as MainActivity).showPlayer((obj as VideoTable),true)
+        presenter.channelLogo((obj as VideoTable).channelID)
     }
 
+    override fun onDownload(videoTable: VideoTable) {
+        (activity as MainActivity).checkDownload(videoTable)
+    }
     override fun onLoadMore() {
         presenter.loadData(keyword,offset,false)
     }
@@ -34,16 +52,18 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Lis
 
     lateinit var presenter:NextVideoPresenter
     private lateinit var mListView: RecyclerView
-    private lateinit var adapter: SearchListAdapter
+    private lateinit var adapter: PlayListAdapter
     private lateinit var data_loading:View
     var offset:Int = -1
     var keyword = ""
     private var isNextVideo = true
+    var indexPlay = -1
     private var list: MutableList<VideoTable> = ArrayList<VideoTable>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         presenter = NextVideoPresenter(this,activity)
-        adapter = SearchListAdapter(activity!!,list)
+        adapter = PlayListAdapter(activity!!,list)
         adapter.listener = this
         adapter.loadMore(false,this)
     }
@@ -64,6 +84,9 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Lis
         mListView.setItemAnimator(DefaultItemAnimator())
     }
     fun loadNext(video:VideoTable){
+        adapter.loadHeader(video)
+        presenter.channelLogo(video.channelID)
+        indexPlay = 0
         keyword= video.videoID
         adapter.loadMore(false,this)
         isNextVideo = true
@@ -90,6 +113,9 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Lis
 
     }
 
+    override fun onChannelLogo(logo: ChannelLogoEntity?) {
+        adapter.loadChannelLogo(logo)
+    }
     override fun apiError() {
 
     }

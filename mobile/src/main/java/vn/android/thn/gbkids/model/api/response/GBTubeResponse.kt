@@ -79,6 +79,10 @@ open class GBTubeResponse() {
                         if (has(appStatus,"status")){
                             app.appStatus =appStatus.getInt("status")
                         }
+
+                    }
+                    if (has(dataJson,"countPlay")){
+                        app.playCount =dataJson.getLong("countPlay")
                     }
                     if (has(dataJson, "error")) {
                         error = Gson().fromJson<ErrorResponseEntity>(dataJson.get("error").toString(),ErrorResponseEntity::class.java)

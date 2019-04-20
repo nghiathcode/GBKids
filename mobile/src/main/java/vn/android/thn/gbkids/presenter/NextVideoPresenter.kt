@@ -6,8 +6,10 @@ import vn.android.thn.gbkids.model.api.GBRequestName
 import vn.android.thn.gbkids.model.api.GBTubeRequestCallBack
 import vn.android.thn.gbkids.model.api.request.GBTubeRequest
 import vn.android.thn.gbkids.model.api.response.GBTubeResponse
+import vn.android.thn.gbkids.model.api.response.LogoChannelResponse
 import vn.android.thn.gbkids.model.api.response.NewResponse
 import vn.android.thn.gbkids.model.db.VideoTable
+import vn.android.thn.gbkids.model.entity.ChannelLogoEntity
 import vn.android.thn.library.net.GBRequestError
 
 
@@ -53,6 +55,19 @@ class NextVideoPresenter(mvp: NextVideoMvp, mActivity: FragmentActivity?) :
         })
 
     }
+    fun channelLogo(channelId:String){
+        val api = GBTubeRequest(String.format(GBRequestName.LOGO_CHANNEL,channelId),mActivity!!)
+        api.get().execute(object : GBTubeRequestCallBack {
+            override fun onResponse(httpCode: Int, response: GBTubeResponse, request: GBTubeRequest) {
+                mMvp!!.onChannelLogo(response.toResponse(LogoChannelResponse::class)!!.logo)
+            }
+
+            override fun onRequestError(errorRequest: GBRequestError, request: GBTubeRequest) {
+
+            }
+
+        })
+    }
     override fun onRefreshComplete(requestName: String) {
         if (requestName.equals(String.format(GBRequestName.NEXT_VIDEO,keyword),true)){
             loadData(keyword,0,true)
@@ -65,5 +80,6 @@ class NextVideoPresenter(mvp: NextVideoMvp, mActivity: FragmentActivity?) :
         fun onNextVideo(listVideo: MutableList<VideoTable>,offset:Int = -1)
         fun onStartLoad()
         fun onComplete()
+        fun onChannelLogo(logo:ChannelLogoEntity?)
     }
 }

@@ -6,9 +6,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!--<uses-feature-->
-            <!--android:name="android.hardware.touchscreen.multitouch"-->
-            <!--android:required="false" />-->
+    <uses-feature
+            android:name="android.hardware.touchscreen.multitouch"
+            android:required="false" />
     <application
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
@@ -23,6 +23,15 @@
                 android:authorities="vn.android.thn.gbkids"
                 android:enabled="true"
                 android:exported="false">
+        </provider>
+        <provider
+            android:authorities="vn.android.thn.gbkids.fileprovider"
+            android:name="android.support.v4.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
         </provider>
         <meta-data android:name="com.google.android.gms.version"
                    android:value="@integer/google_play_services_version" />
@@ -39,7 +48,9 @@
                 android:name="AA_MODELS"
                 android:value="vn.android.thn.gbkids.model.db.VideoTable,
                                 vn.android.thn.gbkids.model.db.AppSetting,
-                                vn.android.thn.gbkids.model.db.KeyWordHistory" />
+                                vn.android.thn.gbkids.model.db.KeyWordHistory,
+                                vn.android.thn.gbkids.model.db.VideoDownLoad,
+                                vn.android.thn.gbkids.model.db.FollowTable" />
         <activity
                 android:name=".views.activity.MainActivity"
                 android:configChanges="orientation|keyboardHidden|screenSize|locale"
@@ -55,8 +66,7 @@
         </activity>
         <activity android:name=".views.activity.VideoPlayerActivity"
                   android:launchMode="singleTop"
-                  android:theme="@style/PlayerTheme"
-        >
+                  android:theme="@style/PlayerTheme">
             <intent-filter>
                 <action android:name="com.google.android.exoplayer.demo.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -69,6 +79,7 @@
         </activity>
         <service android:name=".views.services.YoutubeStreamService"/>
         <service android:name=".views.services.VideoDeleteService"/>
+        <service android:name=".views.services.DownLoadVideoService"/>
     </application>
 
 </manifest>
