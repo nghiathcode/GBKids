@@ -33,11 +33,6 @@ class NewFragment:BaseFragment(), NewVideoPresenter.SearchMvp, ListItemListener,
         presenter.loadNew(offset,false)
     }
     override fun onItemClick(obj: Any, pos: Int) {
-//        val detail = VideoDetailFragment()
-//        detail.videoId = (obj as VideoTable).videoID!!
-//        viewManager.pushView(detail)
-
-//        viewManager.startActivity(VideoPlayerActivity::class.java)
         (activity as MainActivity).showPlayer((obj as VideoTable),true)
     }
 

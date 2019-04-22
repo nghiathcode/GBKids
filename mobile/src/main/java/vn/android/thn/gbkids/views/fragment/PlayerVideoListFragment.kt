@@ -47,7 +47,7 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
     override fun onItemClick(obj: Any, pos: Int) {
         if (obj is VideoTable){
             (activity as MainActivity).showPlayer((obj as VideoTable),true)
-            presenter.channelLogo((obj as VideoTable).channelID)
+//            presenter.channelLogo((obj as VideoTable).channelID)
         } else{
             (activity as MainActivity).showPlayerDownLoad((obj as VideoDownLoad),true)
         }
@@ -99,7 +99,7 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
     fun loadNext(video:VideoTable){
         adapter.localList = false
         adapter.loadHeader(video)
-        presenter.channelLogo(video.channelID)
+
         indexPlay = 0
         keyword= video.videoID
         adapter.loadMore(false,this)
@@ -135,7 +135,9 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
                 }
 //                adapter.list =list
                 adapter.notifyDataSetChanged()
+
             }
+            presenter.channelLogo(adapter.headerData!!.channelID)
         }
 
     }

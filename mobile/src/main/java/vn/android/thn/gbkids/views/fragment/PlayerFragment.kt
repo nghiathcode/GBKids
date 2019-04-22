@@ -303,7 +303,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
         currentStop = 0
         videoIdCurrent = obj.videoID
         video_error.visibility = View.GONE
-        playerView.visibility = View.VISIBLE
+        playerView.visibility = View.GONE
         video_loading.visibility = View.VISIBLE
         if (App.getInstance().appStatus == 1){
             if (GBUtils.isEmpty(obj.urlImage)){

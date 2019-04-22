@@ -29,69 +29,9 @@ import vn.android.thn.gbkids.views.adapter.VideoChannelListAdapter
 import vn.android.thn.gbkids.views.view.ToolBarView
 import java.util.ArrayList
 
-class ListVideoChannelFragment :BaseFragment(), ListItemListener , VideoChannelPresenter.VideoChannelMvp,LoadMoreListener, Player.EventListener{
+class ListVideoChannelFragment :BaseFragment(), ListItemListener , VideoChannelPresenter.VideoChannelMvp,LoadMoreListener{
     val TAG = "SinglePlayerFragment"
-    override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-        LogUtils.info(TAG, "onPlaybackParametersChanged")
-    }
 
-    override fun onSeekProcessed() {
-        LogUtils.info(TAG, "onSeekProcessed")
-    }
-
-    override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-        LogUtils.info(TAG, "onTracksChanged")
-    }
-
-    override fun onPlayerError(error: ExoPlaybackException?) {
-        LogUtils.info(TAG, "onPlayerError")
-    }
-
-    override fun onLoadingChanged(isLoading: Boolean) {
-
-        if (!isLoading){
-            if (player_view_content.visibility == View.GONE){
-                player_view_content.visibility = View.VISIBLE
-            }
-            if (player.initVideo) {
-
-                LogUtils.info(TAG, "onLoadingChanged:"+player_view_content.height)
-                var params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,player_view_content.height)
-                player_view_content.setLayoutParams(params)
-//                player_view_content.getViewTreeObserver().removeGlobalOnLayoutListener(this)
-            }
-        } else {
-            LogUtils.info(TAG, "onLoadingChanged")
-        }
-    }
-
-    override fun onPositionDiscontinuity(reason: Int) {
-        LogUtils.info(TAG, "onPositionDiscontinuity")
-    }
-
-    override fun onRepeatModeChanged(repeatMode: Int) {
-        LogUtils.info(TAG, "onRepeatModeChanged")
-    }
-
-    override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-        LogUtils.info(TAG, "onShuffleModeEnabledChanged")
-    }
-
-    override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
-        LogUtils.info(TAG, "onTimelineChanged")
-    }
-
-    override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-        LogUtils.info(TAG, "onPlayerStateChanged")
-        if (playbackState ==Player.STATE_ENDED){
-            LogUtils.info(TAG, "onPlayerStateChanged:END VIDEO")
-//            val obj = listener.nextVideo()
-//            if (obj!= null){
-//                playNewVideo(obj)
-//            }
-
-        }
-    }
     override fun onLoadMore() {
         presenter.loadData(channelID,offset,false)
     }
@@ -121,8 +61,7 @@ class ListVideoChannelFragment :BaseFragment(), ListItemListener , VideoChannelP
     }
 
     override fun onItemClick(obj: Any, pos: Int) {
-//        (activity as MainActivity).showPlayer((obj as VideoTable),true)
-//        player_view_content.visibility = View.VISIBLE
+        player_view_content.visibility = View.VISIBLE
         player.playNewVideo((obj as VideoTable))
     }
     var offset:Int = -1
@@ -156,7 +95,6 @@ class ListVideoChannelFragment :BaseFragment(), ListItemListener , VideoChannelP
     }
 
     override fun firstInit() {
-        player.eventListener = this
         presenter = VideoChannelPresenter(this,activity!!)
         channelID = arguments!!.getString("channelId")
         adapter = VideoChannelListAdapter(activity!!,list)

@@ -94,15 +94,23 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         drawer_layout  = findViewById(R.id.drawer_layout)
         draggablePanel = findViewById(R.id.draggable_panel)!!
         findViewById<View>(R.id.btn_list_download).setOnClickListener {
+            player.closeVideo()
+            draggablePanel.closeToLeft()
             viewManager.pushView(ListDownloadFragment::class)
         }
         findViewById<View>(R.id.btn_list_history).setOnClickListener {
+            player.closeVideo()
+            draggablePanel.closeToLeft()
             viewManager.pushView(ListHistoryFragment::class)
         }
         findViewById<View>(R.id.btn_list_follow).setOnClickListener {
+            player.closeVideo()
+            draggablePanel.closeToLeft()
             viewManager.pushView(ListFollowFragment::class)
         }
         findViewById<View>(R.id.btn_close).setOnClickListener {
+            player.closeVideo()
+            draggablePanel.closeToLeft()
             drawer_layout.closeDrawers()
         }
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
