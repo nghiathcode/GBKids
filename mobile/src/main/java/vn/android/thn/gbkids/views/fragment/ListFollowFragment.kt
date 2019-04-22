@@ -1,5 +1,6 @@
 package vn.android.thn.gbkids.views.fragment
 
+import android.os.Bundle
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -19,6 +20,9 @@ import java.util.ArrayList
 class ListFollowFragment :BaseFragment(), ListItemListener {
     override fun onItemClick(obj: Any, pos: Int) {
 //        (activity as MainActivity).showPlayer((obj as VideoTable),true)
+        val bundle = Bundle()
+        bundle.putString("channelId",(obj as FollowTable).channelID)
+        viewManager.pushView(ListVideoChannelFragment::class,bundle)
     }
 
     private lateinit var mListView: RecyclerView
@@ -38,11 +42,11 @@ class ListFollowFragment :BaseFragment(), ListItemListener {
     }
 
     override fun loadData() {
-
+        list.addAll( GBDataBase.getList(FollowTable::class.java))
+        adapter.notifyDataSetChanged()
     }
 
     override fun firstInit() {
-        list  = GBDataBase.getList(FollowTable::class.java)
         adapter = FollowListAdapter(activity!!,list)
         adapter.listener = this
     }

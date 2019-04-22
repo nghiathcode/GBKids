@@ -66,8 +66,9 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
     private lateinit var mListView: RecyclerView
     private lateinit var adapter: PlayListAdapter
     private lateinit var data_loading:View
-    var offset:Int = -1
+
     var keyword = ""
+    var offset:Int = -1
     private var isNextVideo = true
     var indexPlay = -1
     private var list: MutableList<Any> = ArrayList<Any>()

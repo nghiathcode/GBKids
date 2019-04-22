@@ -52,11 +52,12 @@ import vn.android.thn.library.utils.GBUtils
 // Created by NghiaTH on 3/19/19.
 // Copyright (c) 2019
 
-class PlayerFragment : Fragment(), PlaybackPreparer,
+class SinglePlayerFragment : Fragment(), PlaybackPreparer,
     PlayerControlView.VisibilityListener, ViewTreeObserver.OnGlobalLayoutListener,
     FullScreenDialog.FullScreenListener, YoutubeStreamListener {
     var density = -1
     var playLocal = false
+    var initVideo = false
     override fun onStartStream() {
         video_error.visibility = View.GONE
         playerView.visibility = View.VISIBLE
@@ -112,7 +113,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     var currentStop: Long = 0
     private var mFullScreenDialog = FullScreenDialog()
     var myStream = ""
-    val TAG = "PlayerFragment"
+    val TAG = "SinglePlayerFragment"
     lateinit var playerView: PlayerView
     var trackSelector: DefaultTrackSelector? = null
     var player: SimpleExoPlayer? = null
@@ -127,6 +128,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     var videoIdCurrent = ""
     lateinit var listener:PlayerListener
     var videoPlay:Any? = null
+    lateinit var eventListener:Player.EventListener
     override fun preparePlayback() {
         LogUtils.info(TAG, "preparePlayback")
     }
@@ -145,7 +147,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_player, container, false)
+        val view = inflater.inflate(R.layout.fragment_player_single, container, false)
         mFullScreenDialog.listener = this
         playerView = view.findViewById(R.id.player_view)!!
         video_loading = view.findViewById(R.id.video_loading)
@@ -216,60 +218,62 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                     LogUtils.info(TAG, "onRenderedFirstFrame")
                     playerView.visibility = View.VISIBLE
                     video_loading.visibility = View.GONE
+                    initVideo = true
 
                 }
 
             })
-            player!!.addListener(object :Player.EventListener{
-                override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-                    LogUtils.info(TAG, "onPlaybackParametersChanged")
-                }
-
-                override fun onSeekProcessed() {
-                    LogUtils.info(TAG, "onSeekProcessed")
-                }
-
-                override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-                    LogUtils.info(TAG, "onTracksChanged")
-                }
-
-                override fun onPlayerError(error: ExoPlaybackException?) {
-                    LogUtils.info(TAG, "onPlayerError")
-                }
-
-                override fun onLoadingChanged(isLoading: Boolean) {
-                    LogUtils.info(TAG, "onLoadingChanged")
-                }
-
-                override fun onPositionDiscontinuity(reason: Int) {
-                    LogUtils.info(TAG, "onPositionDiscontinuity")
-                }
-
-                override fun onRepeatModeChanged(repeatMode: Int) {
-                    LogUtils.info(TAG, "onRepeatModeChanged")
-                }
-
-                override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                    LogUtils.info(TAG, "onShuffleModeEnabledChanged")
-                }
-
-                override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
-                    LogUtils.info(TAG, "onTimelineChanged")
-                }
-
-                override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                    LogUtils.info(TAG, "onPlayerStateChanged")
-                    if (playbackState ==Player.STATE_ENDED){
-                        LogUtils.info(TAG, "onPlayerStateChanged:END VIDEO")
-                        val obj = listener.nextVideo()
-                        if (obj!= null){
-                            playNewVideo(obj)
-                        }
-
-                    }
-                }
-
-            })
+            player!!.addListener(eventListener)
+//            player!!.addListener(object :Player.EventListener{
+//                override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
+//                    LogUtils.info(TAG, "onPlaybackParametersChanged")
+//                }
+//
+//                override fun onSeekProcessed() {
+//                    LogUtils.info(TAG, "onSeekProcessed")
+//                }
+//
+//                override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
+//                    LogUtils.info(TAG, "onTracksChanged")
+//                }
+//
+//                override fun onPlayerError(error: ExoPlaybackException?) {
+//                    LogUtils.info(TAG, "onPlayerError")
+//                }
+//
+//                override fun onLoadingChanged(isLoading: Boolean) {
+//                    LogUtils.info(TAG, "onLoadingChanged")
+//                }
+//
+//                override fun onPositionDiscontinuity(reason: Int) {
+//                    LogUtils.info(TAG, "onPositionDiscontinuity")
+//                }
+//
+//                override fun onRepeatModeChanged(repeatMode: Int) {
+//                    LogUtils.info(TAG, "onRepeatModeChanged")
+//                }
+//
+//                override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+//                    LogUtils.info(TAG, "onShuffleModeEnabledChanged")
+//                }
+//
+//                override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
+//                    LogUtils.info(TAG, "onTimelineChanged")
+//                }
+//
+//                override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+//                    LogUtils.info(TAG, "onPlayerStateChanged")
+//                    if (playbackState ==Player.STATE_ENDED){
+//                        LogUtils.info(TAG, "onPlayerStateChanged:END VIDEO")
+//                        val obj = listener.nextVideo()
+//                        if (obj!= null){
+//                            playNewVideo(obj)
+//                        }
+//
+//                    }
+//                }
+//
+//            })
             playerView.useController = true
             playerView.player = player
             playerView.setPlaybackPreparer(this)
@@ -293,6 +297,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
      * playNewVideo
      */
     fun playNewVideo(obj:VideoTable){
+        initVideo = false
         app.mYoutubeStreamListener = this
         this.playLocal = false
         closeVideo()
@@ -406,4 +411,5 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     interface PlayerListener{
         fun nextVideo():VideoTable?
     }
+
 }

@@ -102,6 +102,9 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         findViewById<View>(R.id.btn_list_follow).setOnClickListener {
             viewManager.pushView(ListFollowFragment::class)
         }
+        findViewById<View>(R.id.btn_close).setOnClickListener {
+            drawer_layout.closeDrawers()
+        }
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
         showToolBar()
