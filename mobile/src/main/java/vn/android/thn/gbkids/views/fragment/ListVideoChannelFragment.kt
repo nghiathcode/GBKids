@@ -71,13 +71,7 @@ class ListVideoChannelFragment :BaseFragment(), PlayListItemListener, VideoChann
         player.playNewVideo(videoPlay)
         mListView.scrollToPosition(0)
         adapter.headerData = (videoPlay)
-
-        if (videoPlay!= null){
-            if (videoPlay is VideoTable){
-                (videoPlay as VideoTable).save()
-            }
-
-        }
+        videoPlay.save()
     }
     var offset:Int = -1
     var player =SinglePlayerFragment()

@@ -101,4 +101,29 @@
             android:textColor="@color/txt_black"
             android:text="@string/txt_download"/>
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/btn_list_suggestions"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@drawable/row_select_white_border_botton"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="@dimen/padding_10"
+        android:paddingTop="@dimen/padding_10"
+        android:paddingBottom="@dimen/padding_10">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:src="@drawable/ico_suggestions" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/margin_10"
+            android:textColor="@color/txt_black"
+            android:text="@string/txt_suggestions"/>
+    </LinearLayout>
 </LinearLayout>

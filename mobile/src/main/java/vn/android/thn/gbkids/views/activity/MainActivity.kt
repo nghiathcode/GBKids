@@ -113,6 +113,13 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             draggablePanel.closeToLeft()
             drawer_layout.closeDrawers()
         }
+        findViewById<View>(R.id.btn_list_suggestions).setOnClickListener {
+            player.closeVideo()
+            draggablePanel.closeToLeft()
+            drawer_layout.closeDrawers()
+            viewManager.pushView(SuggestionsListFragment::class)
+        }
+
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
         showToolBar()
@@ -130,6 +137,8 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         mn_action_search = findViewById(R.id.mn_action_search)
         txt_key_word = findViewById(R.id.txt_key_word)
         mn_action_search.setOnClickListener {
+            player.closeVideo()
+            draggablePanel.closeToLeft()
 //            viewManager.pushView(SearchHistoryFragment::class)
             val searchFragment = HistoryKeyWordDialog()
             searchFragment.listener = this

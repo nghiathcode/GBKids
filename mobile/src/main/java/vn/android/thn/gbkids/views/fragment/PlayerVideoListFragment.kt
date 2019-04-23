@@ -48,6 +48,8 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
         if (obj is VideoTable){
             (activity as MainActivity).showPlayer((obj as VideoTable),true)
 //            presenter.channelLogo((obj as VideoTable).channelID)
+            var videoPlay = (obj as VideoTable)
+            videoPlay.save()
         } else{
             (activity as MainActivity).showPlayerDownLoad((obj as VideoDownLoad),true)
         }
