@@ -3,21 +3,45 @@ package vn.android.thn.gbkids.views.fragment
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.view.View
+import android.widget.FrameLayout
 import jp.co.tss21.monistor.models.GBDataBase
 import vn.android.thn.gbfilm.views.listener.ListItemListener
 import vn.android.thn.gbkids.R
+import vn.android.thn.gbkids.model.api.GBRequestName
+import vn.android.thn.gbkids.model.api.GBTubeRequestCallBack
+import vn.android.thn.gbkids.model.api.request.GBTubeRequest
+import vn.android.thn.gbkids.model.api.response.GBTubeResponse
+import vn.android.thn.gbkids.model.api.response.LogoChannelResponse
 import vn.android.thn.gbkids.model.db.VideoDownLoad
-import vn.android.thn.gbkids.model.db.VideoTable
-import vn.android.thn.gbkids.views.activity.MainActivity
 import vn.android.thn.gbkids.views.adapter.DownloadListAdapter
+import vn.android.thn.gbkids.views.view.ToolBarView
+import vn.android.thn.library.net.GBRequestError
 import java.util.ArrayList
 
 class ListDownloadFragment :BaseFragment(), ListItemListener {
     override fun onItemClick(obj: Any, pos: Int) {
-        (activity as MainActivity).showPlayerDownLoad((obj as VideoDownLoad),true)
-    }
+//        (activity as MainActivity).showPlayerDownLoad((obj as VideoDownLoad),true)
+        player_view_content.visibility = View.VISIBLE
+        player.playVideoLocal((obj as VideoDownLoad))
+        adapter.headerData = (obj as VideoDownLoad)
+        mListView.scrollToPosition(0)
+        val api = GBTubeRequest(String.format(GBRequestName.LOGO_CHANNEL,(obj as VideoDownLoad).channelID),activity!!)
+        api.get().execute(object : GBTubeRequestCallBack {
+            override fun onResponse(httpCode: Int, response: GBTubeResponse, request: GBTubeRequest) {
+                adapter.channelLogoEntity = response.toResponse(LogoChannelResponse::class)!!.logo
+                adapter.notifyDataSetChanged()
+            }
 
+            override fun onRequestError(errorRequest: GBRequestError, request: GBTubeRequest) {
+                adapter.notifyDataSetChanged()
+            }
+
+        })
+    }
+    var player =SinglePlayerFragment()
     private lateinit var mListView: RecyclerView
+    private lateinit var player_view_content: FrameLayout
     private lateinit var adapter: DownloadListAdapter
     private var list: MutableList<VideoDownLoad> = ArrayList<VideoDownLoad>()
     override fun fragmentName(): String {
@@ -25,6 +49,7 @@ class ListDownloadFragment :BaseFragment(), ListItemListener {
     }
 
     override fun initView() {
+        player_view_content = findViewById<FrameLayout>(R.id.player_view_content)!!
         mListView = findViewById<RecyclerView>(R.id.list)!!
         mListView.adapter = adapter
         adapter.notifyDataSetChanged()
@@ -34,7 +59,7 @@ class ListDownloadFragment :BaseFragment(), ListItemListener {
     }
 
     override fun loadData() {
-
+        viewManager.addView(player,null,null,R.id.player_view_content)
     }
 
     override fun firstInit() {
@@ -45,5 +70,8 @@ class ListDownloadFragment :BaseFragment(), ListItemListener {
 
     override fun layoutFileResourceCommon(): Int {
         return R.layout.fragment_download_list
+    }
+    override fun toolBarViewMode(): ToolBarView {
+        return ToolBarView.AUTO_HIDE
     }
 }

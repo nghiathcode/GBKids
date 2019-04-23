@@ -368,7 +368,7 @@ class SinglePlayerFragment : Fragment(), PlaybackPreparer,
         currentStop = 0
         videoIdCurrent = obj.videoID
         video_error.visibility = View.GONE
-        playerView.visibility = View.VISIBLE
+        playerView.visibility = View.GONE
         video_loading.visibility = View.VISIBLE
         ImageLoader.loadImagePlay(img_thumbnail, obj.thumbnails,obj.videoID)
 

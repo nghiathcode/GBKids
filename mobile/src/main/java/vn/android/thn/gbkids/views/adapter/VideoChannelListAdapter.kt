@@ -84,12 +84,12 @@ class VideoChannelListAdapter(private val mContext: Context, var list: MutableLi
 
     override fun getItemCount(): Int {
         if (isLoadMore) {
-            return list.size + 1
+            return list.size + 2
         } else {
-            return list.size
+            return list.size + 1
+
         }
     }
-
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (getItemViewType(position) == TYPE_HEADER) {
             (holder as VideoChannelListAdapter.ViewHolderHeader).bindData()
@@ -136,7 +136,7 @@ class VideoChannelListAdapter(private val mContext: Context, var list: MutableLi
                 } else {
                     action_download.setImageResource(R.drawable.ico_download_complete)
                 }
-                if (App.getInstance().playCount > Constants.SHOW_AD_START) {
+                if (App.getInstance().playCount > Constants.SHOW_AD_START && App.getInstance().appStatus == 1) {
                     if (ad_card_view.childCount > 0) {
                         ad_card_view.removeAllViews()
                     }

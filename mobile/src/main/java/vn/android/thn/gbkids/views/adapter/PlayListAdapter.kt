@@ -133,9 +133,10 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
     internal inner class ViewHolderHeader(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var title: TextView
         var title_channel: TextView
+        var img_channel: ImageView
         var action_download: ImageView
         var action_follow: ImageView
-        var img_channel: ImageView
+
         var ad_card_view: FrameLayout
         var adView: AdView? = null
 
@@ -145,9 +146,10 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
             adView!!.setAdUnitId(mContext.getString(R.string.AD_UNIT_ID));
             title = itemView.findViewById(R.id.title)
             ad_card_view = itemView.findViewById(R.id.ad_card_view)
-            title_channel = itemView.findViewById(R.id.title_channel)
+
             action_follow = itemView.findViewById(R.id.action_follow)
             action_download = itemView.findViewById(R.id.action_download)
+            title_channel = itemView.findViewById(R.id.title_channel)
             img_channel = itemView.findViewById(R.id.img_channel)
             action_download.setOnClickListener {
                 if (listener != null) {
@@ -191,6 +193,7 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
                 } else {
                     action_download.setImageResource(R.drawable.ico_download_complete)
                 }
+
             }
 
             if (channelLogoEntity != null) {
@@ -204,21 +207,20 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
                     url = channelLogoEntity!!.default!!.url
                 }
                 ImageLoader.loadImageCricle(img_channel, url)
+                if (App.getInstance().playCount > SHOW_AD_START && App.getInstance().appStatus == 1){
+                    if (ad_card_view.childCount > 0) {
+                        ad_card_view.removeAllViews()
+                    }
+                    ad_card_view.addView(adView)
+                    adView!!.loadAd(AdRequest.Builder().build())
+                    if (App.getInstance().isDebugMode()) {
+                        adView!!.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
+                    } else {
+                        adView!!.loadAd(AdRequest.Builder().build())
+                    }
+                }
             } else {
                 img_channel.visibility = View.GONE
-            }
-
-            if (App.getInstance().playCount > SHOW_AD_START){
-                if (ad_card_view.childCount > 0) {
-                    ad_card_view.removeAllViews()
-                }
-                ad_card_view.addView(adView)
-                adView!!.loadAd(AdRequest.Builder().build())
-                if (App.getInstance().isDebugMode()) {
-                    adView!!.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
-                } else {
-                    adView!!.loadAd(AdRequest.Builder().build())
-                }
             }
 
         }
