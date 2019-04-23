@@ -41,15 +41,18 @@
                     android:id="@+id/txt_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+
+                    android:lineSpacingExtra="5dp"
                     android:ellipsize="end"
                     android:maxLines="2"
                     android:lines="2"
                     android:textColor="@color/txt_black"
-                    tool:text="title"/>
+                    tool:text="title\nffdfd"/>
             <TextView
                     android:id="@+id/txt_info"
                     android:ellipsize="end"
                     android:maxLines="2"
+                    android:lineSpacingExtra="5dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_gray"/>

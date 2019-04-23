@@ -16,6 +16,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import jp.co.tss21.monistor.models.GBDataBase
 import vn.android.thn.gbfilm.views.listener.ListItemListener
 import vn.android.thn.gbfilm.views.listener.LoadMoreListener
+import vn.android.thn.gbfilm.views.listener.PlayListItemListener
 import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.model.db.VideoDownLoad
 import vn.android.thn.gbkids.model.db.VideoTable
@@ -29,7 +30,11 @@ import vn.android.thn.gbkids.views.adapter.VideoChannelListAdapter
 import vn.android.thn.gbkids.views.view.ToolBarView
 import java.util.ArrayList
 
-class ListVideoChannelFragment :BaseFragment(), ListItemListener , VideoChannelPresenter.VideoChannelMvp,LoadMoreListener{
+class ListVideoChannelFragment :BaseFragment(), PlayListItemListener, VideoChannelPresenter.VideoChannelMvp,LoadMoreListener{
+    override fun onDownload(videoTable: VideoTable) {
+        (activity as MainActivity).checkDownload(videoTable)
+    }
+
     val TAG = "SinglePlayerFragment"
 
     override fun onLoadMore() {
@@ -63,6 +68,8 @@ class ListVideoChannelFragment :BaseFragment(), ListItemListener , VideoChannelP
     override fun onItemClick(obj: Any, pos: Int) {
         player_view_content.visibility = View.VISIBLE
         player.playNewVideo((obj as VideoTable))
+        mListView.scrollToPosition(0)
+        adapter.headerData = (obj as VideoTable)
     }
     var offset:Int = -1
     var player =SinglePlayerFragment()
@@ -107,4 +114,5 @@ class ListVideoChannelFragment :BaseFragment(), ListItemListener , VideoChannelP
     override fun toolBarViewMode(): ToolBarView {
         return ToolBarView.AUTO_HIDE
     }
+
 }

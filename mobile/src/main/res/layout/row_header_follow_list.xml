@@ -41,47 +41,6 @@
                 android:src="@drawable/ico_download" />
         </RelativeLayout>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingRight="@dimen/padding_10">
-
-            <ImageView
-                android:id="@+id/img_channel"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_marginLeft="@dimen/margin_10"
-                android:contentDescription="@string/app_name"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/title_channel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_toLeftOf="@+id/action_follow"
-                android:layout_toRightOf="@+id/img_channel"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:lineSpacingExtra="5dp"
-                android:maxLines="2"
-                android:paddingStart="@dimen/padding_10"
-                android:textColor="@color/text_gray"
-                tools:text="title channel" />
-
-            <ImageView
-                android:id="@+id/action_follow"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/view_30"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:layout_marginLeft="@dimen/margin_5"
-                android:adjustViewBounds="true"
-                android:contentDescription="@string/app_name"
-                android:scaleType="centerInside"
-                android:src="@drawable/ico_follow" />
-        </RelativeLayout>
-
     </LinearLayout>
 
     <FrameLayout
