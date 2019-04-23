@@ -67,9 +67,17 @@ class ListVideoChannelFragment :BaseFragment(), PlayListItemListener, VideoChann
 
     override fun onItemClick(obj: Any, pos: Int) {
         player_view_content.visibility = View.VISIBLE
-        player.playNewVideo((obj as VideoTable))
+        val  videoPlay = (obj as VideoTable)
+        player.playNewVideo(videoPlay)
         mListView.scrollToPosition(0)
-        adapter.headerData = (obj as VideoTable)
+        adapter.headerData = (videoPlay)
+
+        if (videoPlay!= null){
+            if (videoPlay is VideoTable){
+                (videoPlay as VideoTable).save()
+            }
+
+        }
     }
     var offset:Int = -1
     var player =SinglePlayerFragment()

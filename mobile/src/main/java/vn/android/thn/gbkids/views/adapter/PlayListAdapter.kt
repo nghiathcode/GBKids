@@ -220,6 +220,11 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
                     }
                 }
             } else {
+                if (App.getInstance().playCount > SHOW_AD_START && App.getInstance().appStatus == 1){
+                    if (ad_card_view.childCount > 0) {
+                        ad_card_view.removeAllViews()
+                    }
+                }
                 img_channel.visibility = View.GONE
             }
 
