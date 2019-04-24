@@ -16,7 +16,8 @@
             android:roundIcon="@mipmap/ic_launcher"
             android:supportsRtl="true"
             android:name=".App"
-            android:theme="@style/AppTheme.Launcher">
+            android:theme="@style/AppTheme.Launcher"
+            android:hardwareAccelerated="true">
 
         <provider
                 android:name="com.activeandroid.content.ContentProvider"

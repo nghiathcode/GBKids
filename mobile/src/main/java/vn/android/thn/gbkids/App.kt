@@ -8,6 +8,7 @@ import android.support.multidex.MultiDex
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import com.activeandroid.ActiveAndroid
+import com.facebook.ads.AudienceNetworkAds
 
 import com.google.android.exoplayer2.upstream.*
 import com.google.android.exoplayer2.upstream.cache.*
@@ -69,6 +70,7 @@ class App : Application() {
     override fun onCreate() {
 
         super.onCreate()
+        AudienceNetworkAds.initialize(this)
         MultiDex.install(this)
         ActiveAndroid.initialize(this)
         registerReceiver(youtybeStreamReceiver, IntentFilter(Constants.YOUTUBE_STREAM));

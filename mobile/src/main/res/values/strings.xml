@@ -2,9 +2,9 @@
     <string name="app_name">GBKids</string>
     <string name="AD_UNIT_ID">ca-app-pub-2223782486826233/6011960887</string>
     <string name="video_error">Video is Delete!</string>
-    <string name="txt_history">History</string>
-    <string name="txt_download">Download</string>
-    <string name="txt_Follow">Follow</string>
-    <string name="txt_suggestions">Suggestions</string>
+    <string name="txt_history">Video History</string>
+    <string name="txt_download">Video Download</string>
+    <string name="txt_Follow">Follow Channels</string>
+    <string name="txt_suggestions">Suggestions Video</string>
 
 </resources>

@@ -33,6 +33,10 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
+import com.facebook.ads.Ad
+import com.facebook.ads.AdError
+import com.facebook.ads.NativeAd
+import com.facebook.ads.NativeAdListener
 import jp.co.tss21.monistor.models.GBDataBase
 import vn.android.thn.gbfilm.views.dialogs.YoutubeDialog
 import vn.android.thn.gbkids.constants.RequestCode
@@ -70,6 +74,10 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
     override fun onRegister() {
         viewManager.addView(NewFragment::class)
     }
+
+    private val TAG = "MainActivity"
+    private var fb_NativeAd: NativeAd? = null
+
     lateinit var drawer_layout: DrawerLayout
     lateinit var presenter: MainPresenter
     lateinit var txt_key_word:TextView
@@ -153,11 +161,33 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             viewManager.showDialog(searchFragment)
         }
         initPlayView()
+    }
+    fun loadFBNativeAd(){
+        fb_NativeAd = NativeAd(this, "1030315647356057_1030317390689216")
+        fb_NativeAd!!.setAdListener(object :NativeAdListener{
+            override fun onAdClicked(p0: Ad?) {
+                LogUtils.error(TAG,"Native ad clicked!")
+            }
 
-//        AdRequest.Builder.addTestDevice("BCB68136B98CF003B0B4965411508000")
-//        AdRequest.Builder()
-//            .addTestDevice("27438b00914bb2f60fb50d2d35bccbd5")
-//            .build();
+            override fun onMediaDownloaded(p0: Ad?) {
+                LogUtils.error(TAG,"Native ad finished downloading all assets.")
+            }
+
+            override fun onError(ad: Ad?, adError: AdError?) {
+                LogUtils.error(TAG,"Native ad failed to load: " + adError!!.getErrorMessage())
+            }
+
+            override fun onAdLoaded(p0: Ad?) {
+                LogUtils.error(TAG,"Native ad is loaded and ready to be displayed!")
+            }
+
+            override fun onLoggingImpression(p0: Ad?) {
+                LogUtils.error(TAG, "Native ad impression logged!")
+            }
+
+        })
+        // Request an ad
+        fb_NativeAd!!.loadAd()
     }
     fun loadThumbnail(videoId:String){
         ImageLoader.loadImage(thumbnail_video, Constants.DOMAIN+"/thumbnail_high/"+videoId,videoId)
