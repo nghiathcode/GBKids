@@ -7,9 +7,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.google.gson.Gson
 import jp.co.tss21.monistor.models.GBDataBase
 import vn.android.thn.gbfilm.views.listener.ListItemListener
@@ -24,15 +26,16 @@ import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.model.entity.ChannelLogoEntity
 import vn.android.thn.gbkids.views.view.ImageLoader
 import vn.android.thn.library.utils.GBUtils
-import com.google.android.gms.ads.AdView
 import vn.android.thn.gbkids.constants.Constants.SHOW_AD_START
+import vn.android.thn.gbkids.utils.LogUtils
 
 
 //
 // Created by NghiaTH on 2/27/19.
 // Copyright (c) 2019
 
-class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val TYPE_DATA = 0
     private val TYPE_LOAD_MORE = 1
     private val TYPE_HEADER = 2
@@ -42,6 +45,30 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
     var headerData: VideoTable? = null
     var channelLogoEntity: ChannelLogoEntity? = null
     var localList = false
+    var adView: AdView
+    var isLoadAD = false
+    init {
+        adView = AdView(mContext)
+        adView!!.setAdSize(AdSize.BANNER);
+        adView!!.setAdUnitId(mContext.getString(R.string.AD_UNIT_ID))
+
+    }
+    fun loadAD(){
+        if (App.getInstance().isDebugMode()) {
+            adView!!.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
+        } else {
+            adView!!.loadAd(AdRequest.Builder().build())
+        }
+    }
+    fun resumeAD(){
+        adView.resume()
+    }
+    fun pauseAD(){
+        adView.pause()
+    }
+    fun destroyAD(){
+        adView.destroy()
+    }
     fun loadHeader(headerData: VideoTable) {
         this.headerData = headerData
         notifyDataSetChanged()
@@ -50,6 +77,7 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
     fun loadChannelLogo(channelLogoEntity: ChannelLogoEntity?) {
         this.channelLogoEntity = channelLogoEntity
         notifyDataSetChanged()
+
     }
 
     fun loadMore(isLoadMore: Boolean, loadMoreListener: LoadMoreListener) {
@@ -79,16 +107,16 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         if (viewType == TYPE_HEADER) {
             val itemView = LayoutInflater.from(mContext)
-                    .inflate(R.layout.row_header_list, parent, false)
+                .inflate(R.layout.row_header_list, parent, false)
             return ViewHolderHeader(itemView)
         }
         if (viewType == TYPE_DATA) {
             val itemView = LayoutInflater.from(mContext)
-                    .inflate(R.layout.row_search_list, parent, false)
+                .inflate(R.layout.row_search_list, parent, false)
             return ViewHolder(itemView)
         } else {
             val itemView = LayoutInflater.from(mContext)
-                    .inflate(R.layout.row_load_more, parent, false)
+                .inflate(R.layout.row_load_more, parent, false)
             return ViewHolderLoadMore(itemView)
         }
     }
@@ -138,15 +166,16 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
         var action_follow: ImageView
 
         var ad_card_view: FrameLayout
-        var adView: AdView? = null
+//        var adContainer: LinearLayout
 
         init {
-            adView = AdView(mContext)
-            adView!!.setAdSize(AdSize.BANNER);
-            adView!!.setAdUnitId(mContext.getString(R.string.AD_UNIT_ID));
+//            adView = AdView(mContext,mContext.getString(R.string.fb_ad_banner),com.facebook.ads.AdSize.BANNER_HEIGHT_50)
+//            adView!!.setAdSize(AdSize.BANNER);
+//            adView!!.setAdUnitId(mContext.getString(R.string.AD_UNIT_ID));
+
             title = itemView.findViewById(R.id.title)
             ad_card_view = itemView.findViewById(R.id.ad_card_view)
-
+//            adContainer = itemView.findViewById(R.id.banner_container)
             action_follow = itemView.findViewById(R.id.action_follow)
             action_download = itemView.findViewById(R.id.action_download)
             title_channel = itemView.findViewById(R.id.title_channel)
@@ -161,7 +190,8 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
             }
             action_follow.setOnClickListener {
                 if (headerData != null) {
-                    var follow = GBDataBase.getObject(FollowTable::class.java, "channelID=?", *arrayOf(headerData!!.channelID))
+                    var follow =
+                        GBDataBase.getObject(FollowTable::class.java, "channelID=?", *arrayOf(headerData!!.channelID))
                     if (follow == null) {
                         follow = FollowTable()
                         follow!!.channelID = headerData!!.channelID
@@ -175,23 +205,54 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
                     }
                 }
             }
+//            adView.setAdListener(object : NativeAdListener {
+//                override fun onAdClicked(p0: Ad?) {
+//                    LogUtils.error("BANNER", "Native ad clicked!")
+//                }
+//
+//                override fun onMediaDownloaded(p0: Ad?) {
+//                    LogUtils.error("BANNER", "Native ad finished downloading all assets.")
+//                }
+//
+//                override fun onError(ad: Ad?, adError: AdError?) {
+//                    LogUtils.error("BANNER", "Native ad failed to load: " + adError!!.getErrorMessage())
+//                }
+//
+//                override fun onAdLoaded(ad: Ad?) {
+//                    LogUtils.error("BANNER", "Native ad is loaded and ready to be displayed!")
+//
+//                }
+//
+//                override fun onLoggingImpression(p0: Ad?) {
+//                    LogUtils.error("BANNER", "Native ad impression logged!")
+//                }
+//
+//            })
         }
 
         fun bindData() {
             if (headerData != null) {
                 title.text = headerData!!.title
                 title_channel.text = headerData!!.channelTitle
-                var follow = GBDataBase.getObject(FollowTable::class.java, "channelID=?", *arrayOf(headerData!!.channelID))
+                var follow =
+                    GBDataBase.getObject(FollowTable::class.java, "channelID=?", *arrayOf(headerData!!.channelID))
+
                 if (follow == null) {
                     action_follow.setImageResource(R.drawable.ico_follow)
                 } else {
                     action_follow.setImageResource(R.drawable.ico_follow_complete)
                 }
-                var downloaded = GBDataBase.getObject(VideoDownLoad::class.java, "videoID=?", *arrayOf(headerData!!.videoID))
-                if (downloaded == null) {
-                    action_download.setImageResource(R.drawable.ico_download)
+                if (App.getInstance().myDevice.showDownLoad == 1){
+                    action_download.visibility = View.VISIBLE
+                    var downloaded =
+                            GBDataBase.getObject(VideoDownLoad::class.java, "videoID=?", *arrayOf(headerData!!.videoID))
+                    if (downloaded == null) {
+                        action_download.setImageResource(R.drawable.ico_download)
+                    } else {
+                        action_download.setImageResource(R.drawable.ico_download_complete)
+                    }
                 } else {
-                    action_download.setImageResource(R.drawable.ico_download_complete)
+                    action_download.visibility = View.GONE
                 }
 
             }
@@ -207,20 +268,25 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
                     url = channelLogoEntity!!.default!!.url
                 }
                 ImageLoader.loadImageCricle(img_channel, url)
-                if (App.getInstance().playCount > SHOW_AD_START && App.getInstance().appStatus == 1){
+                if (App.getInstance().myDevice.showAD == 1) {
+                    ad_card_view.visibility = View.VISIBLE
                     if (ad_card_view.childCount > 0) {
                         ad_card_view.removeAllViews()
                     }
                     ad_card_view.addView(adView)
-                    adView!!.loadAd(AdRequest.Builder().build())
-                    if (App.getInstance().isDebugMode()) {
-                        adView!!.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
-                    } else {
-                        adView!!.loadAd(AdRequest.Builder().build())
+                    if (!isLoadAD){
+                        loadAD()
+                        isLoadAD = true
+                    }
+                } else {
+                    ad_card_view.visibility = View.GONE
+                    if (ad_card_view.childCount > 0) {
+                        ad_card_view.removeAllViews()
                     }
                 }
             } else {
-                if (App.getInstance().playCount > SHOW_AD_START && App.getInstance().appStatus == 1){
+                ad_card_view.visibility = View.GONE
+                if (App.getInstance().myDevice.showAD == 1) {
                     if (ad_card_view.childCount > 0) {
                         ad_card_view.removeAllViews()
                     }
@@ -273,7 +339,11 @@ class PlayListAdapter(private val mContext: Context, var list: MutableList<Any>)
                     }
                     ImageLoader.loadImage(img_thumbnail, obj.urlImage, obj.videoID)
                 } else {
-                    ImageLoader.loadImage(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + obj.videoID, obj.videoID)
+                    ImageLoader.loadImage(
+                        img_thumbnail,
+                        Constants.DOMAIN + "/thumbnail_high/" + obj.videoID,
+                        obj.videoID
+                    )
                 }
 
                 txt_info.text = obj.channelTitle

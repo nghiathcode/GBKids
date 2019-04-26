@@ -38,6 +38,30 @@ class VideoChannelListAdapter(private val mContext: Context, var list: MutableLi
     var isLoadMore = false
     var loadMoreListener: LoadMoreListener? = null
     var headerData: VideoTable? = null
+    var adView: AdView
+    var isLoadAD = false
+    init {
+        adView = AdView(mContext)
+        adView!!.setAdSize(AdSize.BANNER);
+        adView!!.setAdUnitId(mContext.getString(R.string.AD_UNIT_history))
+
+    }
+    fun loadAD(){
+        if (App.getInstance().isDebugMode()) {
+            adView!!.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
+        } else {
+            adView!!.loadAd(AdRequest.Builder().build())
+        }
+    }
+    fun resumeAD(){
+        adView.resume()
+    }
+    fun pauseAD(){
+        adView.pause()
+    }
+    fun destroyAD(){
+        adView.destroy()
+    }
     fun loadHeader(headerData: VideoTable) {
         this.headerData = headerData
         notifyDataSetChanged()
@@ -106,12 +130,7 @@ class VideoChannelListAdapter(private val mContext: Context, var list: MutableLi
         var title: TextView
         var action_download: ImageView
         var ad_card_view: FrameLayout
-        var adView: AdView? = null
-
         init {
-            adView = AdView(mContext)
-            adView!!.setAdSize(AdSize.BANNER);
-            adView!!.setAdUnitId(mContext.getString(R.string.AD_UNIT_ID));
             title = itemView.findViewById(R.id.title)
             ad_card_view = itemView.findViewById(R.id.ad_card_view)
             action_download = itemView.findViewById(R.id.action_download)
@@ -130,22 +149,32 @@ class VideoChannelListAdapter(private val mContext: Context, var list: MutableLi
             if (headerData != null) {
                 itemView.visibility = View.VISIBLE
                 title.text = headerData!!.title
-                var downloaded = GBDataBase.getObject(VideoDownLoad::class.java, "videoID=?", *arrayOf(headerData!!.videoID))
-                if (downloaded == null) {
-                    action_download.setImageResource(R.drawable.ico_download)
+                if (App.getInstance().myDevice.showDownLoad == 1){
+                    action_download.visibility = View.VISIBLE
+                    var downloaded = GBDataBase.getObject(VideoDownLoad::class.java, "videoID=?", *arrayOf(headerData!!.videoID))
+                    if (downloaded == null) {
+                        action_download.setImageResource(R.drawable.ico_download)
+                    } else {
+                        action_download.setImageResource(R.drawable.ico_download_complete)
+                    }
                 } else {
-                    action_download.setImageResource(R.drawable.ico_download_complete)
+                    action_download.visibility = View.GONE
                 }
-                if (App.getInstance().playCount > Constants.SHOW_AD_START && App.getInstance().appStatus == 1) {
+
+                if (App.getInstance().myDevice.showAD == 1) {
+                    ad_card_view.visibility = View.VISIBLE
                     if (ad_card_view.childCount > 0) {
                         ad_card_view.removeAllViews()
                     }
                     ad_card_view.addView(adView)
-                    adView!!.loadAd(AdRequest.Builder().build())
-                    if (App.getInstance().isDebugMode()) {
-                        adView!!.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
-                    } else {
-                        adView!!.loadAd(AdRequest.Builder().build())
+                    if (!isLoadAD){
+                        loadAD()
+                        isLoadAD = true
+                    }
+                } else {
+                    ad_card_view.visibility = View.GONE
+                    if (ad_card_view.childCount > 0) {
+                        ad_card_view.removeAllViews()
                     }
                 }
                 title.visibility = View.VISIBLE

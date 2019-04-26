@@ -11,6 +11,23 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <FrameLayout
+            android:id="@+id/ad_card_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/line_top"
+            android:background="@drawable/bg_rectange_white_border_botton"
+            android:paddingBottom="@dimen/padding_10">
+            <!--<LinearLayout-->
+            <!--android:id="@+id/banner_container"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignParentBottom="true"-->
+            <!--android:orientation="vertical"-->
+            <!--/>-->
+        </FrameLayout>
+
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,6 +52,7 @@
                 android:layout_height="@dimen/view_30"
                 android:layout_alignParentRight="true"
                 android:layout_marginLeft="@dimen/margin_5"
+                android:visibility="gone"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/app_name"
                 android:scaleType="centerInside"
@@ -84,19 +102,11 @@
 
     </LinearLayout>
 
-    <FrameLayout
-        android:layout_below="@+id/view_info"
-        android:id="@+id/ad_card_view"
-        android:layout_marginTop="@dimen/margin_10"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-    </FrameLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@+id/ad_card_view"
+        android:layout_below="@+id/view_info"
         android:layout_marginTop="@dimen/margin_10"
         android:background="@color/text_gray" />
 </RelativeLayout>

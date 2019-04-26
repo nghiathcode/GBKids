@@ -6,13 +6,20 @@
         android:layout_height="match_parent"
         android:background="@color/bg_white"
         android:orientation="vertical">
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/list"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/row_search_list">
+        android:orientation="vertical">
 
-    </android.support.v7.widget.RecyclerView>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/row_search_list">
+
+        </android.support.v7.widget.RecyclerView>
+    </LinearLayout>
+
 
     <LinearLayout
             android:id="@+id/data_loading"

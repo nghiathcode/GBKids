@@ -13,9 +13,6 @@ import android.support.design.widget.AppBarLayout
 import android.support.design.widget.CoordinatorLayout
 import android.support.v7.widget.Toolbar
 import android.view.ViewTreeObserver
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
 import com.google.android.gms.ads.AdRequest
 import thn.android.vn.draggableview.DraggableListener
 import thn.android.vn.draggableview.DraggablePanel
@@ -33,10 +30,9 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
-import com.facebook.ads.Ad
-import com.facebook.ads.AdError
-import com.facebook.ads.NativeAd
-import com.facebook.ads.NativeAdListener
+import android.view.LayoutInflater
+import android.widget.*
+import com.facebook.ads.*
 import jp.co.tss21.monistor.models.GBDataBase
 import vn.android.thn.gbfilm.views.dialogs.YoutubeDialog
 import vn.android.thn.gbkids.constants.RequestCode
@@ -49,20 +45,22 @@ import vn.android.thn.library.views.dialogs.GBDialogContentEntity
 // Created by NghiaTH on 2/26/19.
 // Copyright (c) 2019
 
-class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewTreeObserver.OnGlobalLayoutListener {
+class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, ViewTreeObserver.OnGlobalLayoutListener {
     override fun onGlobalLayout() {
-        if(top_view_video.measuredHeight>0) {
+        if (top_view_video.measuredHeight > 0) {
             top_view_video.getViewTreeObserver().removeGlobalOnLayoutListener(this)
-            updateHeightVideoPlay(top_view_video.measuredHeight )
-            LogUtils.info("MainActivity","onGlobalLayout:"+top_view_video.measuredHeight.toString())
+            updateHeightVideoPlay(top_view_video.measuredHeight)
+            LogUtils.info("MainActivity", "onGlobalLayout:" + top_view_video.measuredHeight.toString())
         }
     }
+
     override fun searchKeyWord(q: String) {
         viewManager.hideDialog()
         var searchResult = SearchResultFragment()
         searchResult.keyword = q
         viewManager.pushView(searchResult)
     }
+
     override fun apiError() {
 
     }
@@ -80,28 +78,37 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
 
     lateinit var drawer_layout: DrawerLayout
     lateinit var presenter: MainPresenter
-    lateinit var txt_key_word:TextView
+    lateinit var txt_key_word: TextView
     lateinit var draggablePanel: DraggablePanel
-    lateinit var mn_action_search:View
-    lateinit var thumbnail_video:ImageView
-    lateinit var view_search_bar:View
-    var keyword = ""
-     var player =PlayerFragment()
-     var videoListPlayer =PlayerVideoListFragment()
-    lateinit var top_view_video:View
-    var videoTableDownload:VideoTable? = null
+    lateinit var mn_action_search: View
+    lateinit var thumbnail_video: ImageView
+    lateinit var view_search_bar: View
+    lateinit var nativeAdLayout: NativeAdLayout
+    lateinit var adView: LinearLayout
 
+    var keyword = ""
+    var player = PlayerFragment()
+    var videoListPlayer = PlayerVideoListFragment()
+    lateinit var top_view_video: View
+    var videoTableDownload: VideoTable? = null
+    lateinit var btn_list_download:View
     override fun onCreate(savedInstanceState: Bundle?) {
-        presenter = MainPresenter(this,this)
+        presenter = MainPresenter(this, this)
         super.onCreate(savedInstanceState)
         if (android.os.Build.VERSION.SDK_INT > 9) {
             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
             StrictMode.setThreadPolicy(policy)
         }
 
-        drawer_layout  = findViewById(R.id.drawer_layout)
+        drawer_layout = findViewById(R.id.drawer_layout)
         draggablePanel = findViewById(R.id.draggable_panel)!!
-        findViewById<View>(R.id.btn_list_download).setOnClickListener {
+        btn_list_download = findViewById<View>(R.id.btn_list_download)
+        if (app.myDevice .showDownLoad == 1){
+            btn_list_download.visibility = View.VISIBLE
+        } else{
+            btn_list_download.visibility = View.GONE
+        }
+        btn_list_download.setOnClickListener {
             player.closeVideo()
             draggablePanel.closeToLeft()
             viewManager.pushView(ListDownloadFragment::class)
@@ -132,7 +139,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         setSupportActionBar(toolbar)
         showToolBar()
         toolbar.setNavigationOnClickListener {
-            if (supportFragmentManager.backStackEntryCount == 0){
+            if (supportFragmentManager.backStackEntryCount == 0) {
                 drawer_layout!!.openDrawer(GravityCompat.START)
             } else {
                 onBackPressed()
@@ -157,28 +164,35 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         txt_key_word.setOnClickListener {
             val searchFragment = HistoryKeyWordDialog()
             searchFragment.listener = this
-            searchFragment.keyword =txt_key_word.text.toString()
+            searchFragment.keyword = txt_key_word.text.toString()
             viewManager.showDialog(searchFragment)
         }
         initPlayView()
+//        loadFBNativeAd()
     }
-    fun loadFBNativeAd(){
+
+    fun loadFBNativeAd() {
         fb_NativeAd = NativeAd(this, "1030315647356057_1030317390689216")
-        fb_NativeAd!!.setAdListener(object :NativeAdListener{
+        fb_NativeAd!!.setAdListener(object : NativeAdListener {
             override fun onAdClicked(p0: Ad?) {
-                LogUtils.error(TAG,"Native ad clicked!")
+                LogUtils.error(TAG, "Native ad clicked!")
             }
 
             override fun onMediaDownloaded(p0: Ad?) {
-                LogUtils.error(TAG,"Native ad finished downloading all assets.")
+                LogUtils.error(TAG, "Native ad finished downloading all assets.")
             }
 
             override fun onError(ad: Ad?, adError: AdError?) {
-                LogUtils.error(TAG,"Native ad failed to load: " + adError!!.getErrorMessage())
+                LogUtils.error(TAG, "Native ad failed to load: " + adError!!.getErrorMessage())
             }
 
-            override fun onAdLoaded(p0: Ad?) {
-                LogUtils.error(TAG,"Native ad is loaded and ready to be displayed!")
+            override fun onAdLoaded(ad: Ad?) {
+                LogUtils.error(TAG, "Native ad is loaded and ready to be displayed!")
+                if (fb_NativeAd == null || fb_NativeAd != ad) {
+                    return;
+                }
+                // Inflate Native Ad into Container
+                inflateAd(fb_NativeAd!!)
             }
 
             override fun onLoggingImpression(p0: Ad?) {
@@ -189,24 +203,78 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         // Request an ad
         fb_NativeAd!!.loadAd()
     }
-    fun loadThumbnail(videoId:String){
-        ImageLoader.loadImage(thumbnail_video, Constants.DOMAIN+"/thumbnail_high/"+videoId,videoId)
+
+    fun inflateAd(nativeAd: NativeAd) {
+        nativeAd.unregisterView()
+        // Add the Ad view into the ad container.
+        nativeAdLayout = findViewById(R.id.native_ad_container);
+        val inflater = LayoutInflater.from(this)
+        // Inflate the Ad view.  The layout referenced should be the one you created in the last step.
+        adView = inflater.inflate(R.layout.fb_ad_view, nativeAdLayout, false) as LinearLayout
+        nativeAdLayout.addView(adView);
+
+        // Add the AdOptionsView
+        var adChoicesContainer = findViewById<LinearLayout>(R.id.ad_choices_container)
+        var adOptionsView = AdOptionsView(this, nativeAd, nativeAdLayout)
+        adChoicesContainer.removeAllViews()
+        adChoicesContainer.addView(adOptionsView, 0)
+
+        // Create native UI using the ad metadata.
+        var nativeAdIcon = adView.findViewById<AdIconView>(R.id.native_ad_icon)
+        var nativeAdTitle = adView.findViewById<TextView>(R.id.native_ad_title)
+        var nativeAdMedia = adView.findViewById<MediaView>(R.id.native_ad_media)
+        var nativeAdSocialContext = adView.findViewById<TextView>(R.id.native_ad_social_context)
+        var nativeAdBody = adView.findViewById<TextView>(R.id.native_ad_body)
+        var sponsoredLabel = adView.findViewById<TextView>(R.id.native_ad_sponsored_label)
+        var nativeAdCallToAction = adView.findViewById<Button>(R.id.native_ad_call_to_action)
+
+        // Set the Text.
+        nativeAdTitle.setText(nativeAd.getAdvertiserName())
+        nativeAdBody.setText(nativeAd.getAdBodyText())
+        nativeAdSocialContext.setText(nativeAd.getAdSocialContext())
+        if (nativeAd.hasCallToAction()) {
+            nativeAdCallToAction.setVisibility(View.VISIBLE)
+        } else {
+            nativeAdCallToAction.setVisibility(View.INVISIBLE)
+        }
+
+        nativeAdCallToAction.setText(nativeAd.getAdCallToAction())
+        sponsoredLabel.setText(nativeAd.getSponsoredTranslation())
+
+        // Create a list of clickable views
+        var clickableViews = ArrayList<View>()
+        clickableViews.add(nativeAdTitle)
+        clickableViews.add(nativeAdCallToAction)
+
+        // Register the Title and CTA button to listen for clicks.
+        nativeAd.registerViewForInteraction(
+            adView,
+            nativeAdMedia,
+            nativeAdIcon,
+            clickableViews
+        )
+
     }
-    fun initPlayView(){
+
+    fun loadThumbnail(videoId: String) {
+        ImageLoader.loadImage(thumbnail_video, Constants.DOMAIN + "/thumbnail_high/" + videoId, videoId)
+    }
+
+    fun initPlayView() {
         player.listener = videoListPlayer
         draggablePanel.setFragmentManager(supportFragmentManager);
         draggablePanel.setTopFragment(player);
         draggablePanel.setBottomFragment(videoListPlayer);
-        draggablePanel.setDraggableListener(object : DraggableListener{
+        draggablePanel.setDraggableListener(object : DraggableListener {
             override fun onMaximized() {
-                if(!playLocal){
-                    if (videoPlay!= null){
+                if (!playLocal) {
+                    if (videoPlay != null) {
                         player.playNewVideo(videoPlay!!)
                         videoListPlayer.loadNext(videoPlay!!)
                         videoPlay = null
                     }
-                } else{
-                    if (videoPlayDownLoad!= null){
+                } else {
+                    if (videoPlayDownLoad != null) {
                         player.playVideoLocal(videoPlayDownLoad!!)
                         videoListPlayer.loadVideoDownLoad(videoPlayDownLoad!!)
                         videoPlayDownLoad = null
@@ -214,33 +282,55 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
                 }
 
                 drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+                if (app.myDevice .showDownLoad == 1){
+                    btn_list_download.visibility = View.VISIBLE
+                } else{
+                    btn_list_download.visibility = View.GONE
+                }
             }
 
             override fun onMinimized() {
                 drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+                if (app.myDevice .showDownLoad == 1){
+                    btn_list_download.visibility = View.VISIBLE
+                } else{
+                    btn_list_download.visibility = View.GONE
+                }
             }
 
             override fun onClosedToLeft() {
                 player.closeVideo()
                 draggablePanel.visibility = View.INVISIBLE
+                if (app.myDevice .showDownLoad == 1){
+                    btn_list_download.visibility = View.VISIBLE
+                } else{
+                    btn_list_download.visibility = View.GONE
+                }
             }
 
             override fun onClosedToRight() {
                 player.closeVideo()
                 draggablePanel.visibility = View.INVISIBLE
+                if (app.myDevice .showDownLoad == 1){
+                    btn_list_download.visibility = View.VISIBLE
+                } else{
+                    btn_list_download.visibility = View.GONE
+                }
             }
 
         })
         draggablePanel.initializeView()
     }
-    var  videoPlay:VideoTable? = null
-    var  videoPlayDownLoad:VideoDownLoad? = null
+
+    var videoPlay: VideoTable? = null
+    var videoPlayDownLoad: VideoDownLoad? = null
     var playLocal = false
-    fun showPlayer(videoId:VideoTable,isShow:Boolean = true){
+    fun showPlayer(videoId: VideoTable, isShow: Boolean = true) {
+
         playLocal = false
         videoPlay = videoId
-        if (draggablePanel.visibility !=View.VISIBLE) {
-            top_view_video.viewTreeObserver.addOnGlobalLayoutListener( this)
+        if (draggablePanel.visibility != View.VISIBLE) {
+            top_view_video.viewTreeObserver.addOnGlobalLayoutListener(this)
             draggablePanel.visibility = View.INVISIBLE
             loadThumbnail(videoId.videoID)
         } else {
@@ -248,21 +338,23 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
 
         }
     }
-    fun showPlayerDownLoad(videoId:VideoDownLoad,isShow:Boolean = true){
+
+    fun showPlayerDownLoad(videoId: VideoDownLoad, isShow: Boolean = true) {
         playLocal = true
         videoPlayDownLoad = videoId
-        if (draggablePanel.visibility !=View.VISIBLE) {
-            top_view_video.viewTreeObserver.addOnGlobalLayoutListener( this)
+        if (draggablePanel.visibility != View.VISIBLE) {
+            top_view_video.viewTreeObserver.addOnGlobalLayoutListener(this)
             draggablePanel.visibility = View.INVISIBLE
 //            loadThumbnail(videoId.videoID)
-            ImageLoader.loadImage(thumbnail_video, videoPlayDownLoad!!.thumbnails,videoPlayDownLoad!!.videoID)
+            ImageLoader.loadImage(thumbnail_video, videoPlayDownLoad!!.thumbnails, videoPlayDownLoad!!.videoID)
         } else {
             draggablePanel.maximize()
 
         }
     }
-    fun updateHeightVideoPlay(height:Int){
-        if (draggablePanel.visibility !=View.VISIBLE) {
+
+    fun updateHeightVideoPlay(height: Int) {
+        if (draggablePanel.visibility != View.VISIBLE) {
             draggablePanel.visibility = View.VISIBLE
         }
         draggablePanel.setTopViewHeight(height)
@@ -270,11 +362,12 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         draggablePanel.maximize()
 
     }
-    fun toolBarViewMode(toolBarView: ToolBarView = ToolBarView.AUTO_HIDE){
+
+    fun toolBarViewMode(toolBarView: ToolBarView = ToolBarView.AUTO_HIDE) {
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         val params_toolbar = toolbar.getLayoutParams() as AppBarLayout.LayoutParams
 
-        if (toolBarView == ToolBarView.AUTO_HIDE){
+        if (toolBarView == ToolBarView.AUTO_HIDE) {
             findViewById<View>(R.id.toolbar).visibility = View.VISIBLE
             params_toolbar.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP or AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS)
             val view = findViewById<View>(R.id.fragment_view)
@@ -282,7 +375,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             params.setBehavior(AppBarLayout.ScrollingViewBehavior())
             view.requestLayout()
 
-        } else if(toolBarView == ToolBarView.HIDE){
+        } else if (toolBarView == ToolBarView.HIDE) {
             findViewById<View>(R.id.toolbar).visibility = View.GONE
         } else {
             findViewById<View>(R.id.toolbar).visibility = View.VISIBLE
@@ -295,10 +388,11 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         toolbar.layoutParams = params_toolbar
         toolbar.requestLayout()
     }
-     fun showToolBar(){
+
+    fun showToolBar() {
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
-        if (getSupportActionBar() != null){
-            if (supportFragmentManager.backStackEntryCount == 0){
+        if (getSupportActionBar() != null) {
+            if (supportFragmentManager.backStackEntryCount == 0) {
                 getSupportActionBar()!!.setDisplayHomeAsUpEnabled(true)
                 getSupportActionBar()!!.setDisplayShowHomeEnabled(true)
                 toolbar.setNavigationIcon(R.drawable.ico_menu)
@@ -314,15 +408,17 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         }
 
     }
-    fun loadKeyWord(keyword:String){
+
+    fun loadKeyWord(keyword: String) {
         txt_key_word.text = keyword
     }
-    fun showToolBarViewType(toolBarViewType: ToolBarViewType = ToolBarViewType.NORMAL){
-        if (toolBarViewType ==ToolBarViewType.NORMAL ){
+
+    fun showToolBarViewType(toolBarViewType: ToolBarViewType = ToolBarViewType.NORMAL) {
+        if (toolBarViewType == ToolBarViewType.NORMAL) {
             mn_action_search.visibility = View.VISIBLE
             view_search_bar.visibility = View.GONE
 
-        } else if (toolBarViewType ==ToolBarViewType.SEARCH_KEYWORD ){
+        } else if (toolBarViewType == ToolBarViewType.SEARCH_KEYWORD) {
             mn_action_search.visibility = View.GONE
             view_search_bar.visibility = View.VISIBLE
         } else {
@@ -330,11 +426,12 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             view_search_bar.visibility = View.GONE
         }
     }
+
     override fun loadData() {
     }
 
     override fun initView() {
-        if (app.appSetting()!= null) {
+        if (app.appSetting() != null) {
             viewManager.addView(NewFragment::class)
 
         } else {
@@ -347,10 +444,10 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
     }
 
     override fun onBackPressed() {
-        if (draggablePanel.visibility == View.VISIBLE && draggablePanel.isMaximized){
+        if (draggablePanel.visibility == View.VISIBLE && draggablePanel.isMaximized) {
             draggablePanel.closeToLeft()
         } else {
-            if (supportFragmentManager.backStackEntryCount == 0){
+            if (supportFragmentManager.backStackEntryCount == 0) {
                 if (drawer_layout!!.isDrawerOpen(GravityCompat.START)) {
                     drawer_layout!!.closeDrawers()
                     return
@@ -360,40 +457,42 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             viewManager.hideKeyboard()
         }
     }
+
     override fun setThemeApp() {
         setTheme(R.style.AppTheme)
     }
-    fun addBannerAds(){}
-    fun loadBannerAds(){}
+
+    fun addBannerAds() {}
+    fun loadBannerAds() {}
     fun requestStoragePermissions() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
             val lPermissions =
-                    arrayOf<String>(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+                arrayOf<String>(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
             val lPermissionsRead = arrayOf<String>(Manifest.permission.READ_EXTERNAL_STORAGE)
             val permissionCheck =
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
             val permissionCheckRead =
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
             if (permissionCheck == PackageManager.PERMISSION_GRANTED && permissionCheckRead == PackageManager.PERMISSION_GRANTED) {
                 downLoadVideo()
             } else if (permissionCheck == PackageManager.PERMISSION_DENIED) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(
-                                this,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE
-                        )
+                        this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    )
                 ) {
                     //show popup require Permissions
-                    val dialogContent= GBDialogContentEntity()
+                    val dialogContent = GBDialogContentEntity()
                     dialogContent.layoutId = R.layout.dialog_require_permissions
-                    dialogContent.listButton.put(R.id.btn_dialog_left,"No")
-                    dialogContent.listButton.put(R.id.btn_dialog_right,"Yes")
+                    dialogContent.listButton.put(R.id.btn_dialog_left, "No")
+                    dialogContent.listButton.put(R.id.btn_dialog_right, "Yes")
                     dialogContent.message = "please allow GBKids have Permissions on Storage"
-                    dialogContent.buttonClick = object :View.OnClickListener{
+                    dialogContent.buttonClick = object : View.OnClickListener {
                         override fun onClick(v: View?) {
-                            if (v!= null){
+                            if (v != null) {
                                 val lPermissions = arrayOf<String>(
-                                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                        Manifest.permission.READ_EXTERNAL_STORAGE
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                    Manifest.permission.READ_EXTERNAL_STORAGE
                                 )
                                 if (v.id == R.id.btn_dialog_left) {
                                     viewManager.hideDialog()
@@ -401,9 +500,9 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
                                 if (v.id == R.id.btn_dialog_right) {
                                     viewManager.hideDialog()
                                     ActivityCompat.requestPermissions(
-                                            this@MainActivity,
-                                            lPermissions,
-                                            RequestCode.WRITE_EXTERNAL_STORAGE.value
+                                        this@MainActivity,
+                                        lPermissions,
+                                        RequestCode.WRITE_EXTERNAL_STORAGE.value
                                     );
                                 }
                             }
@@ -413,9 +512,9 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
 
                 } else {
                     ActivityCompat.requestPermissions(
-                            this,
-                            lPermissions,
-                            RequestCode.WRITE_EXTERNAL_STORAGE.value
+                        this,
+                        lPermissions,
+                        RequestCode.WRITE_EXTERNAL_STORAGE.value
                     )
                 }
             }
@@ -423,10 +522,12 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             downLoadVideo()
         }
     }
-    fun downLoadVideo(){
-        if (videoTableDownload!= null) {
-            var data = GBDataBase.getObject(VideoDownLoad::class.java, "videoID=?", *arrayOf(videoTableDownload!!.videoID))
-            if (data == null){
+
+    fun downLoadVideo() {
+        if (videoTableDownload != null) {
+            var data =
+                GBDataBase.getObject(VideoDownLoad::class.java, "videoID=?", *arrayOf(videoTableDownload!!.videoID))
+            if (data == null) {
                 data = VideoDownLoad()
                 data.videoID = videoTableDownload!!.videoID
                 data.channelID = videoTableDownload!!.channelID
@@ -438,10 +539,12 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
             }
         }
     }
-    fun checkDownload(videoTableDownload: VideoTable){
+
+    fun checkDownload(videoTableDownload: VideoTable) {
         this.videoTableDownload = videoTableDownload
         requestStoragePermissions()
     }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (grantResults.size != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             if (requestCode == RequestCode.WRITE_EXTERNAL_STORAGE.value) {
@@ -451,17 +554,17 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
         } else {
             if (requestCode == RequestCode.WRITE_EXTERNAL_STORAGE.value) {
                 //show popup require Permissions
-                val dialogContent= GBDialogContentEntity()
+                val dialogContent = GBDialogContentEntity()
                 dialogContent.layoutId = R.layout.dialog_require_permissions
-                dialogContent.listButton.put(R.id.btn_dialog_left,"No")
-                dialogContent.listButton.put(R.id.btn_dialog_right,"Yes")
+                dialogContent.listButton.put(R.id.btn_dialog_left, "No")
+                dialogContent.listButton.put(R.id.btn_dialog_right, "Yes")
                 dialogContent.message = "please allow GBKids have Permissions on Storage"
-                dialogContent.buttonClick = object :View.OnClickListener{
+                dialogContent.buttonClick = object : View.OnClickListener {
                     override fun onClick(v: View?) {
-                        if (v!= null){
+                        if (v != null) {
                             val lPermissions = arrayOf<String>(
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                    Manifest.permission.READ_EXTERNAL_STORAGE
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.READ_EXTERNAL_STORAGE
                             )
                             if (v.id == R.id.btn_dialog_left) {
                                 viewManager.hideDialog()
@@ -469,9 +572,9 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener,ViewT
                             if (v.id == R.id.btn_dialog_right) {
                                 viewManager.hideDialog()
                                 ActivityCompat.requestPermissions(
-                                        this@MainActivity,
-                                        lPermissions,
-                                        RequestCode.WRITE_EXTERNAL_STORAGE.value
+                                    this@MainActivity,
+                                    lPermissions,
+                                    RequestCode.WRITE_EXTERNAL_STORAGE.value
                                 );
                             }
                         }

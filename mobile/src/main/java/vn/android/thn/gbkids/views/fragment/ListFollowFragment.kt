@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.view.View
+import android.widget.TextView
 import jp.co.tss21.monistor.models.GBDataBase
 import vn.android.thn.gbfilm.views.listener.ListItemListener
 import vn.android.thn.gbkids.R
@@ -28,17 +30,27 @@ class ListFollowFragment :BaseFragment(), ListItemListener {
     private lateinit var mListView: RecyclerView
     private lateinit var adapter: FollowListAdapter
     private var list: MutableList<FollowTable> = ArrayList<FollowTable>()
+    private lateinit var no_data: TextView
     override fun fragmentName(): String {
         return "ListDownloadFragment"
     }
 
     override fun initView() {
+        no_data = findViewById<TextView>(R.id.no_data)!!
         mListView = findViewById<RecyclerView>(R.id.list)!!
         mListView.adapter = adapter
         adapter.notifyDataSetChanged()
         val mLayoutManager = LinearLayoutManager(activity!!)
         mListView.setLayoutManager(mLayoutManager)
         mListView.setItemAnimator(DefaultItemAnimator())
+        if(list.size == 0){
+            no_data.visibility = View.VISIBLE
+            no_data.text = getString(R.string.txt_no_follow)
+            mListView.visibility = View.GONE
+        } else {
+            mListView.visibility = View.VISIBLE
+            no_data.visibility = View.GONE
+        }
     }
 
     override fun loadData() {

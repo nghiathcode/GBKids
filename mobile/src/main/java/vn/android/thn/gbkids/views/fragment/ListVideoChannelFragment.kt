@@ -70,7 +70,8 @@ class ListVideoChannelFragment :BaseFragment(), PlayListItemListener, VideoChann
         val  videoPlay = (obj as VideoTable)
         player.playNewVideo(videoPlay)
         mListView.scrollToPosition(0)
-        adapter.headerData = (videoPlay)
+        adapter.headerData = videoPlay
+        adapter.notifyDataSetChanged()
         videoPlay.save()
     }
     var offset:Int = -1
@@ -91,7 +92,6 @@ class ListVideoChannelFragment :BaseFragment(), PlayListItemListener, VideoChann
 
         mListView = findViewById<RecyclerView>(R.id.list)!!
         mListView.adapter = adapter
-        adapter.notifyDataSetChanged()
         val mLayoutManager = LinearLayoutManager(activity!!)
         mListView.setLayoutManager(mLayoutManager)
         mListView.setItemAnimator(DefaultItemAnimator())
@@ -115,6 +115,21 @@ class ListVideoChannelFragment :BaseFragment(), PlayListItemListener, VideoChann
     }
     override fun toolBarViewMode(): ToolBarView {
         return ToolBarView.AUTO_HIDE
+    }
+
+    override fun onDestroy() {
+        player.closeVideo()
+        adapter.destroyAD()
+        super.onDestroy()
+    }
+    override fun onResume() {
+        adapter.resumeAD()
+        super.onResume()
+    }
+
+    override fun onPause() {
+        adapter.pauseAD()
+        super.onPause()
     }
 
 }

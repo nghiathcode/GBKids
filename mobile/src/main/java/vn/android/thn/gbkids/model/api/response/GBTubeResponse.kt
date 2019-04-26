@@ -81,6 +81,19 @@ open class GBTubeResponse() {
                         }
 
                     }
+                    if (has(dataJson,"myDevice")){
+                        val jMyDevice = dataJson.getJSONObject("myDevice")
+                        if (has(jMyDevice,"playCount")){
+                            app.myDevice.playCount = jMyDevice.getLong("playCount")
+                        }
+                        if (has(jMyDevice,"showDownLoad")){
+                            app.myDevice.showDownLoad = jMyDevice.getInt("showDownLoad")
+                        }
+                        if (has(jMyDevice,"showAD")){
+                            app.myDevice.showAD = jMyDevice.getInt("showAD")
+                        }
+
+                    }
                     if (has(dataJson,"countPlay")){
                         app.playCount =dataJson.getLong("countPlay")
                     }

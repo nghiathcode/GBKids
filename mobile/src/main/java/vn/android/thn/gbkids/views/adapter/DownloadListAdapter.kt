@@ -28,6 +28,29 @@ class DownloadListAdapter(private val mContext: Context, var list: MutableList<V
     var listener: ListItemListener? = null
     var channelLogoEntity: ChannelLogoEntity? = null
     var headerData:VideoDownLoad? = null
+    var adView: AdView
+    var isLoadAD = false
+    init {
+        adView = AdView(mContext)
+        adView!!.setAdSize(AdSize.BANNER)
+        adView!!.setAdUnitId(mContext.getString(R.string.AD_UNIT_download))
+    }
+    fun loadAD(){
+        if (App.getInstance().isDebugMode()) {
+            adView.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
+        } else {
+            adView.loadAd(AdRequest.Builder().build())
+        }
+    }
+    fun resumeAD(){
+        adView.resume()
+    }
+    fun pauseAD(){
+        adView.pause()
+    }
+    fun destroyAD(){
+        adView.destroy()
+    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         if (viewType == TYPE_HEADER) {
             val itemView = LayoutInflater.from(mContext)
@@ -49,14 +72,12 @@ class DownloadListAdapter(private val mContext: Context, var list: MutableList<V
     internal inner class ViewHolderHeader(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var title: TextView
         var ad_card_view: FrameLayout
-        var adView: AdView? = null
+
         var title_channel: TextView
         var img_channel: ImageView
         var action_follow: ImageView
         init {
-            adView = AdView(mContext)
-            adView!!.setAdSize(AdSize.BANNER);
-            adView!!.setAdUnitId(mContext.getString(R.string.AD_UNIT_ID));
+
             title = itemView.findViewById(R.id.title)
             ad_card_view = itemView.findViewById(R.id.ad_card_view)
             title_channel = itemView.findViewById(R.id.title_channel)
@@ -75,16 +96,20 @@ class DownloadListAdapter(private val mContext: Context, var list: MutableList<V
                 } else {
                     action_follow.setImageResource(R.drawable.ico_follow_complete)
                 }
-                if (App.getInstance().playCount > Constants.SHOW_AD_START && App.getInstance().appStatus == 1) {
+                if (App.getInstance().myDevice.showAD == 1) {
+                    ad_card_view.visibility = View.VISIBLE
                     if (ad_card_view.childCount > 0) {
                         ad_card_view.removeAllViews()
                     }
                     ad_card_view.addView(adView)
-                    adView!!.loadAd(AdRequest.Builder().build())
-                    if (App.getInstance().isDebugMode()) {
-                        adView!!.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
-                    } else {
-                        adView!!.loadAd(AdRequest.Builder().build())
+                    if (!isLoadAD){
+                        loadAD()
+                        isLoadAD = true
+                    }
+                } else {
+                    ad_card_view.visibility = View.GONE
+                    if (ad_card_view.childCount > 0) {
+                        ad_card_view.removeAllViews()
                     }
                 }
                 title.visibility = View.VISIBLE

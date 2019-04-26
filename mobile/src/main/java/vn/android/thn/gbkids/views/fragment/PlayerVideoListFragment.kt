@@ -8,6 +8,11 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import com.facebook.ads.Ad
+import com.facebook.ads.AdError
+import com.facebook.ads.AdView
+import com.facebook.ads.NativeAdListener
 import jp.co.tss21.monistor.models.GBDataBase
 import vn.android.thn.gbfilm.views.listener.ListItemListener
 import vn.android.thn.gbfilm.views.listener.LoadMoreListener
@@ -17,6 +22,7 @@ import vn.android.thn.gbkids.model.db.VideoDownLoad
 import vn.android.thn.gbkids.model.db.VideoTable
 import vn.android.thn.gbkids.model.entity.ChannelLogoEntity
 import vn.android.thn.gbkids.presenter.NextVideoPresenter
+import vn.android.thn.gbkids.utils.LogUtils
 import vn.android.thn.gbkids.views.activity.MainActivity
 import vn.android.thn.gbkids.views.adapter.PlayListAdapter
 import vn.android.thn.gbkids.views.adapter.SearchListAdapter
@@ -49,6 +55,7 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
             (activity as MainActivity).showPlayer((obj as VideoTable),true)
 //            presenter.channelLogo((obj as VideoTable).channelID)
             var videoPlay = (obj as VideoTable)
+            adapter.headerData = videoPlay
             videoPlay.save()
         } else{
             (activity as MainActivity).showPlayerDownLoad((obj as VideoDownLoad),true)
@@ -68,7 +75,8 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
     private lateinit var mListView: RecyclerView
     private lateinit var adapter: PlayListAdapter
     private lateinit var data_loading:View
-
+//    lateinit var adContainer: LinearLayout
+//    lateinit var adView: AdView
     var keyword = ""
     var offset:Int = -1
     private var isNextVideo = true
@@ -81,12 +89,14 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
         adapter = PlayListAdapter(activity!!,list.toMutableList())
         adapter.listener = this
         adapter.loadMore(false,this)
+//        adView = AdView(activity!!,"1030315647356057_1031722800548675",com.facebook.ads.AdSize.BANNER_HEIGHT_50)
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view =inflater.inflate(R.layout.fragment_video_list_player,container,false)
         mListView = view.findViewById<RecyclerView>(R.id.list)!!
         data_loading = view.findViewById(R.id.data_loading)!!
         data_loading.visibility = View.INVISIBLE
+//        adContainer = view.findViewById(R.id.banner_container)
         return view
     }
 
@@ -97,11 +107,39 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
         val mLayoutManager = LinearLayoutManager(activity!!)
         mListView.setLayoutManager(mLayoutManager)
         mListView.setItemAnimator(DefaultItemAnimator())
+//        adView.setAdListener(object : NativeAdListener {
+//            override fun onAdClicked(p0: Ad?) {
+//                LogUtils.error("BANNER", "Native ad clicked!")
+//            }
+//
+//            override fun onMediaDownloaded(p0: Ad?) {
+//                LogUtils.error("BANNER", "Native ad finished downloading all assets.")
+//            }
+//
+//            override fun onError(ad: Ad?, adError: AdError?) {
+//                LogUtils.error("BANNER", "Native ad failed to load: " + adError!!.getErrorMessage())
+//            }
+//
+//            override fun onAdLoaded(ad: Ad?) {
+//                LogUtils.error("BANNER", "Native ad is loaded and ready to be displayed!")
+//
+//            }
+//
+//            override fun onLoggingImpression(p0: Ad?) {
+//                LogUtils.error("BANNER", "Native ad impression logged!")
+//            }
+//
+//        })
+//        adContainer.addView(adView)
+//        // Request an ad
+//        adView!!.loadAd()
+
     }
     fun loadNext(video:VideoTable){
+//        adView!!.loadAd()
+        adapter.headerData = video
+        adapter.pauseAD()
         adapter.localList = false
-        adapter.loadHeader(video)
-
         indexPlay = 0
         keyword= video.videoID
         adapter.loadMore(false,this)
@@ -139,7 +177,9 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
                 adapter.notifyDataSetChanged()
 
             }
-            presenter.channelLogo(adapter.headerData!!.channelID)
+            if (adapter.headerData!= null) {
+                presenter.channelLogo(adapter.headerData!!.channelID)
+            }
         }
 
     }
@@ -161,5 +201,20 @@ class PlayerVideoListFragment : Fragment() ,NextVideoPresenter.NextVideoMvp, Pla
 
     override fun onComplete() {
         data_loading.visibility = View.GONE
+    }
+
+    override fun onResume() {
+        adapter.resumeAD()
+        super.onResume()
+    }
+
+    override fun onPause() {
+        adapter.pauseAD()
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        adapter.destroyAD()
+        super.onDestroy()
     }
 }

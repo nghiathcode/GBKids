@@ -5,6 +5,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.TextView
 import jp.co.tss21.monistor.models.GBDataBase
 import vn.android.thn.gbfilm.views.listener.ListItemListener
 import vn.android.thn.gbkids.R
@@ -43,12 +44,14 @@ class ListDownloadFragment :BaseFragment(), ListItemListener {
     private lateinit var mListView: RecyclerView
     private lateinit var player_view_content: FrameLayout
     private lateinit var adapter: DownloadListAdapter
+    private lateinit var no_data:TextView
     private var list: MutableList<VideoDownLoad> = ArrayList<VideoDownLoad>()
     override fun fragmentName(): String {
         return "ListDownloadFragment"
     }
 
     override fun initView() {
+        no_data = findViewById<TextView>(R.id.no_data)!!
         player_view_content = findViewById<FrameLayout>(R.id.player_view_content)!!
         mListView = findViewById<RecyclerView>(R.id.list)!!
         mListView.adapter = adapter
@@ -56,6 +59,14 @@ class ListDownloadFragment :BaseFragment(), ListItemListener {
         val mLayoutManager = LinearLayoutManager(activity!!)
         mListView.setLayoutManager(mLayoutManager)
         mListView.setItemAnimator(DefaultItemAnimator())
+        if(list.size == 0){
+            no_data.visibility = View.VISIBLE
+            no_data.text = getString(R.string.txt_no_download)
+            mListView.visibility = View.GONE
+        } else {
+            mListView.visibility = View.VISIBLE
+            no_data.visibility = View.GONE
+        }
     }
 
     override fun loadData() {
@@ -74,4 +85,20 @@ class ListDownloadFragment :BaseFragment(), ListItemListener {
     override fun toolBarViewMode(): ToolBarView {
         return ToolBarView.AUTO_HIDE
     }
+    override fun onDestroy() {
+        player.closeVideo()
+        adapter.destroyAD()
+        super.onDestroy()
+    }
+    override fun onResume() {
+        adapter.resumeAD()
+        super.onResume()
+    }
+
+    override fun onPause() {
+        adapter.pauseAD()
+        super.onPause()
+    }
+
+
 }

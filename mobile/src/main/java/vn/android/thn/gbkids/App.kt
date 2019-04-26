@@ -22,6 +22,7 @@ import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.model.db.AppSetting
 import vn.android.thn.gbkids.model.db.VideoDownLoad
 import vn.android.thn.gbkids.model.db.VideoTable
+import vn.android.thn.gbkids.model.entity.MyDevice
 import vn.android.thn.gbkids.model.entity.StreamEntity
 import vn.android.thn.gbkids.utils.LogUtils
 import vn.android.thn.gbkids.views.services.DownLoadVideoService
@@ -41,6 +42,7 @@ class App : Application() {
     val gson = builder.create()
     var appStatus:Int = 0
     var playCount:Long = 0
+    var myDevice = MyDevice()
     var mYoutubeStreamListener: YoutubeStreamListener? = null
     private var downloadDirectory: File? = null
     private var downloadCache: Cache? = null

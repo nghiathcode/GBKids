@@ -1,10 +1,15 @@
 <resources>
     <string name="app_name">GBKids</string>
     <string name="AD_UNIT_ID">ca-app-pub-2223782486826233/6011960887</string>
+    <string name="AD_UNIT_history">ca-app-pub-2223782486826233/1383301761</string>
+    <string name="AD_UNIT_download">ca-app-pub-2223782486826233/4308848003</string>
     <string name="video_error">Video is Delete!</string>
     <string name="txt_history">Video History</string>
     <string name="txt_download">Video Download</string>
     <string name="txt_Follow">Follow Channels</string>
     <string name="txt_suggestions">Suggestions Video</string>
-
+    <string name="fb_ad_banner">1030315647356057_1031722800548675</string>
+    <string name="fb_ad_video">1030315647356057_1031715217216100</string>
+    <string name="txt_no_download">No videos have been downloaded yet.</string>
+    <string name="txt_no_follow">No channels have been followed.</string>
 </resources>
