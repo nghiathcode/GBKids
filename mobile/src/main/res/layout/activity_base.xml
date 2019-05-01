@@ -12,13 +12,6 @@
 
         <include layout="@layout/header_view" />
 
-        <com.facebook.ads.NativeAdLayout
-            android:id="@+id/native_ad_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:orientation="vertical" />
-
         <RelativeLayout
 
             android:id="@+id/fragment_view"

@@ -5,18 +5,15 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.support.v4.app.Fragment
-import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.widget.*
 
-import android.widget.ImageView
-import android.widget.TextView
-import at.huber.youtubeExtractor.VideoMeta
-import at.huber.youtubeExtractor.YouTubeExtractor
-import at.huber.youtubeExtractor.YtFile
+import com.facebook.ads.*
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.source.ExtractorMediaSource
 
@@ -93,7 +90,6 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
             }
             play(obj_steam.url)
 
-
         }
 
     }
@@ -108,7 +104,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
 
     }
 
-
+    private var fb_NativeAd: InstreamVideoAdView? = null
     var currentStop: Long = 0
     private var mFullScreenDialog = FullScreenDialog()
     var myStream = ""
@@ -127,6 +123,10 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     var videoIdCurrent = ""
     lateinit var listener:PlayerListener
     var videoPlay:Any? = null
+    lateinit var main_player_view:FrameLayout
+    var initVideo = false
+    var isLoadADComplete = false
+    lateinit var adContainer:LinearLayout
     override fun preparePlayback() {
         LogUtils.info(TAG, "preparePlayback")
     }
@@ -144,8 +144,89 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
         trackSelector = DefaultTrackSelector(videoTrackSelectionFactory)
     }
 
+    //fb ad
+    private fun pxToDP(px: Int): Int {
+        return (px / this.resources.displayMetrics.density).toInt()
+    }
+    fun loadFBNativeAd() {
+        fb_NativeAd =  InstreamVideoAdView(activity, getString(R.string.fb_ad_video),
+            AdSize(
+                pxToDP(adContainer.getMeasuredWidth()),
+                pxToDP(adContainer.getMeasuredHeight())
+            ))
+        fb_NativeAd!!.setAdListener(object : InstreamVideoAdListener {
+
+            override fun onAdVideoComplete(p0: Ad?) {
+                LogUtils.error(TAG,"Instream video completed!")
+
+                adContainer.removeAllViews();
+                adContainer.setVisibility(View.GONE)
+                playerView.visibility = View.VISIBLE
+                initializePlayer(myStream)
+                if (fb_NativeAd != null) {
+
+                    fb_NativeAd!!.destroy();
+                    fb_NativeAd = null
+                }
+            }
+            override fun onAdClicked(p0: Ad?) {
+                LogUtils.error(TAG, "Native ad clicked!")
+                adContainer.removeAllViews();
+                adContainer.setVisibility(View.GONE)
+                playerView.visibility = View.VISIBLE
+                initializePlayer(myStream)
+                if (fb_NativeAd != null) {
+                    fb_NativeAd!!.destroy();
+                    fb_NativeAd = null
+                }
+            }
+
+
+
+            override fun onError(ad: Ad?, adError: AdError?) {
+                LogUtils.error(TAG, "Native ad failed to load: " + adError!!.getErrorMessage())
+                playerView.visibility = View.VISIBLE
+
+//                initializePlayer(myStream)
+            }
+
+            override fun onAdLoaded(ad: Ad?) {
+                LogUtils.error(TAG, "Native ad is loaded and ready to be displayed!")
+                if (fb_NativeAd == null || !fb_NativeAd!!.isAdLoaded) {
+                    return
+                }
+                if (fb_NativeAd!!.isAdInvalidated()) {
+                    return
+                }
+                releasePlayer()
+
+                adContainer = fragmentView.findViewById(R.id.adContainer);
+                adContainer.removeAllViews()
+                adContainer.addView(fb_NativeAd)
+
+                fb_NativeAd!!.show()
+                playerView.visibility = View.GONE
+                adContainer.visibility = View.VISIBLE
+                // Inflate Native Ad into Container
+
+            }
+
+            override fun onLoggingImpression(p0: Ad?) {
+                LogUtils.error(TAG, "Native ad impression logged!")
+
+
+            }
+
+        })
+        // Request an ad
+        fb_NativeAd!!.loadAd()
+    }
+
+
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_player, container, false)
+        main_player_view = view.findViewById(R.id.main_player_view)
         mFullScreenDialog.listener = this
         playerView = view.findViewById(R.id.player_view)!!
         video_loading = view.findViewById(R.id.video_loading)
@@ -166,6 +247,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
             mFullScreenDialog.currentStop = currentStop
             (activity as MainActivity).viewManager.showDialog(mFullScreenDialog)
         }
+        adContainer = view.findViewById(R.id.adContainer)
         fragmentView = view!!
 
         return view
@@ -175,6 +257,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
         super.onActivityCreated(savedInstanceState)
         density = Utils.getScreen(activity!!)
         app.mYoutubeStreamListener = this
+
     }
 
     fun play(streamVideo: String) {
@@ -216,7 +299,11 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                     LogUtils.info(TAG, "onRenderedFirstFrame")
                     playerView.visibility = View.VISIBLE
                     video_loading.visibility = View.GONE
-
+                    initVideo = true
+                    if (!isLoadADComplete) {
+                        isLoadADComplete =true
+                        loadFBNativeAd()
+                    }
                 }
 
             })
@@ -239,6 +326,20 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
 
                 override fun onLoadingChanged(isLoading: Boolean) {
                     LogUtils.info(TAG, "onLoadingChanged")
+                    if (!isLoading && initVideo){
+                        LogUtils.info(TAG, "onLoadingChanged:"+main_player_view.height)
+                        Handler().postDelayed(object :Runnable{
+                            override fun run() {
+                                playerView.visibility = View.VISIBLE
+                                video_loading.visibility = View.GONE
+                                var params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,main_player_view.height)
+                                main_player_view.setLayoutParams(params)
+                                (activity as MainActivity).updateHeightVideoPlay(main_player_view.height)
+
+                            }
+                        },200)
+
+                    }
                 }
 
                 override fun onPositionDiscontinuity(reason: Int) {
@@ -267,6 +368,9 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                         }
 
                     }
+                    if (playbackState == Player.STATE_READY){
+                        initVideo = true
+                    }
                 }
 
             })
@@ -293,6 +397,8 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
      * playNewVideo
      */
     fun playNewVideo(obj:VideoTable){
+        initVideo = false
+        isLoadADComplete = false
         app.mYoutubeStreamListener = this
         this.playLocal = false
         closeVideo()
@@ -351,6 +457,9 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     }
     fun closeVideo(){
         releasePlayer()
+        adContainer.removeAllViews();
+        adContainer.setVisibility(View.GONE)
+        playerView.visibility = View.VISIBLE
         myStream = ""
         isNewVideo = true
         shouldAutoPlay = true
@@ -371,6 +480,10 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
 
     override fun onDestroy() {
         super.onDestroy()
+        if (fb_NativeAd != null) {
+            fb_NativeAd!!.destroy();
+            fb_NativeAd = null
+        }
         releasePlayer()
     }
 

@@ -43,6 +43,11 @@ class ListFollowFragment :BaseFragment(), ListItemListener {
         val mLayoutManager = LinearLayoutManager(activity!!)
         mListView.setLayoutManager(mLayoutManager)
         mListView.setItemAnimator(DefaultItemAnimator())
+
+    }
+
+    override fun loadData() {
+        list.addAll( GBDataBase.getList(FollowTable::class.java))
         if(list.size == 0){
             no_data.visibility = View.VISIBLE
             no_data.text = getString(R.string.txt_no_follow)
@@ -51,10 +56,6 @@ class ListFollowFragment :BaseFragment(), ListItemListener {
             mListView.visibility = View.VISIBLE
             no_data.visibility = View.GONE
         }
-    }
-
-    override fun loadData() {
-        list.addAll( GBDataBase.getList(FollowTable::class.java))
         adapter.notifyDataSetChanged()
     }
 

@@ -59,14 +59,7 @@ class ListDownloadFragment :BaseFragment(), ListItemListener {
         val mLayoutManager = LinearLayoutManager(activity!!)
         mListView.setLayoutManager(mLayoutManager)
         mListView.setItemAnimator(DefaultItemAnimator())
-        if(list.size == 0){
-            no_data.visibility = View.VISIBLE
-            no_data.text = getString(R.string.txt_no_download)
-            mListView.visibility = View.GONE
-        } else {
-            mListView.visibility = View.VISIBLE
-            no_data.visibility = View.GONE
-        }
+
     }
 
     override fun loadData() {
@@ -75,6 +68,14 @@ class ListDownloadFragment :BaseFragment(), ListItemListener {
 
     override fun firstInit() {
         list  = GBDataBase.getList(VideoDownLoad::class.java,"isComplete=1")
+        if(list.size == 0){
+            no_data.visibility = View.VISIBLE
+            no_data.text = getString(R.string.txt_no_download)
+            mListView.visibility = View.GONE
+        } else {
+            mListView.visibility = View.VISIBLE
+            no_data.visibility = View.GONE
+        }
         adapter = DownloadListAdapter(activity!!,list)
         adapter.listener = this
     }

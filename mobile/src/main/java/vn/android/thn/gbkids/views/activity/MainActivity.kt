@@ -74,7 +74,6 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, View
     }
 
     private val TAG = "MainActivity"
-    private var fb_NativeAd: NativeAd? = null
 
     lateinit var drawer_layout: DrawerLayout
     lateinit var presenter: MainPresenter
@@ -83,8 +82,6 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, View
     lateinit var mn_action_search: View
     lateinit var thumbnail_video: ImageView
     lateinit var view_search_bar: View
-    lateinit var nativeAdLayout: NativeAdLayout
-    lateinit var adView: LinearLayout
 
     var keyword = ""
     var player = PlayerFragment()
@@ -171,90 +168,6 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, View
 //        loadFBNativeAd()
     }
 
-    fun loadFBNativeAd() {
-        fb_NativeAd = NativeAd(this, "1030315647356057_1030317390689216")
-        fb_NativeAd!!.setAdListener(object : NativeAdListener {
-            override fun onAdClicked(p0: Ad?) {
-                LogUtils.error(TAG, "Native ad clicked!")
-            }
-
-            override fun onMediaDownloaded(p0: Ad?) {
-                LogUtils.error(TAG, "Native ad finished downloading all assets.")
-            }
-
-            override fun onError(ad: Ad?, adError: AdError?) {
-                LogUtils.error(TAG, "Native ad failed to load: " + adError!!.getErrorMessage())
-            }
-
-            override fun onAdLoaded(ad: Ad?) {
-                LogUtils.error(TAG, "Native ad is loaded and ready to be displayed!")
-                if (fb_NativeAd == null || fb_NativeAd != ad) {
-                    return;
-                }
-                // Inflate Native Ad into Container
-                inflateAd(fb_NativeAd!!)
-            }
-
-            override fun onLoggingImpression(p0: Ad?) {
-                LogUtils.error(TAG, "Native ad impression logged!")
-            }
-
-        })
-        // Request an ad
-        fb_NativeAd!!.loadAd()
-    }
-
-    fun inflateAd(nativeAd: NativeAd) {
-        nativeAd.unregisterView()
-        // Add the Ad view into the ad container.
-        nativeAdLayout = findViewById(R.id.native_ad_container);
-        val inflater = LayoutInflater.from(this)
-        // Inflate the Ad view.  The layout referenced should be the one you created in the last step.
-        adView = inflater.inflate(R.layout.fb_ad_view, nativeAdLayout, false) as LinearLayout
-        nativeAdLayout.addView(adView);
-
-        // Add the AdOptionsView
-        var adChoicesContainer = findViewById<LinearLayout>(R.id.ad_choices_container)
-        var adOptionsView = AdOptionsView(this, nativeAd, nativeAdLayout)
-        adChoicesContainer.removeAllViews()
-        adChoicesContainer.addView(adOptionsView, 0)
-
-        // Create native UI using the ad metadata.
-        var nativeAdIcon = adView.findViewById<AdIconView>(R.id.native_ad_icon)
-        var nativeAdTitle = adView.findViewById<TextView>(R.id.native_ad_title)
-        var nativeAdMedia = adView.findViewById<MediaView>(R.id.native_ad_media)
-        var nativeAdSocialContext = adView.findViewById<TextView>(R.id.native_ad_social_context)
-        var nativeAdBody = adView.findViewById<TextView>(R.id.native_ad_body)
-        var sponsoredLabel = adView.findViewById<TextView>(R.id.native_ad_sponsored_label)
-        var nativeAdCallToAction = adView.findViewById<Button>(R.id.native_ad_call_to_action)
-
-        // Set the Text.
-        nativeAdTitle.setText(nativeAd.getAdvertiserName())
-        nativeAdBody.setText(nativeAd.getAdBodyText())
-        nativeAdSocialContext.setText(nativeAd.getAdSocialContext())
-        if (nativeAd.hasCallToAction()) {
-            nativeAdCallToAction.setVisibility(View.VISIBLE)
-        } else {
-            nativeAdCallToAction.setVisibility(View.INVISIBLE)
-        }
-
-        nativeAdCallToAction.setText(nativeAd.getAdCallToAction())
-        sponsoredLabel.setText(nativeAd.getSponsoredTranslation())
-
-        // Create a list of clickable views
-        var clickableViews = ArrayList<View>()
-        clickableViews.add(nativeAdTitle)
-        clickableViews.add(nativeAdCallToAction)
-
-        // Register the Title and CTA button to listen for clicks.
-        nativeAd.registerViewForInteraction(
-            adView,
-            nativeAdMedia,
-            nativeAdIcon,
-            clickableViews
-        )
-
-    }
 
     fun loadThumbnail(videoId: String) {
         ImageLoader.loadImage(thumbnail_video, Constants.DOMAIN + "/thumbnail_high/" + videoId, videoId)
