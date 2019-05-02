@@ -300,10 +300,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                     playerView.visibility = View.VISIBLE
                     video_loading.visibility = View.GONE
                     initVideo = true
-                    if (!isLoadADComplete) {
-                        isLoadADComplete =true
-                        loadFBNativeAd()
-                    }
+
                 }
 
             })
@@ -335,9 +332,16 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
                                 var params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,main_player_view.height)
                                 main_player_view.setLayoutParams(params)
                                 (activity as MainActivity).updateHeightVideoPlay(main_player_view.height)
-
+                                if (!isLoadADComplete) {
+                                    isLoadADComplete =true
+                                    Handler().postDelayed(object :Runnable{
+                                        override fun run() {
+                                            loadFBNativeAd()
+                                        }
+                                    },15000)
+                                }
                             }
-                        },200)
+                        },150)
 
                     }
                 }
@@ -399,6 +403,11 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     fun playNewVideo(obj:VideoTable){
         initVideo = false
         isLoadADComplete = false
+        adContainer.removeAllViews()
+        if (fb_NativeAd != null) {
+            fb_NativeAd!!.destroy()
+            fb_NativeAd = null
+        }
         app.mYoutubeStreamListener = this
         this.playLocal = false
         closeVideo()
@@ -457,7 +466,11 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
     }
     fun closeVideo(){
         releasePlayer()
-        adContainer.removeAllViews();
+        adContainer.removeAllViews()
+        if (fb_NativeAd != null) {
+            fb_NativeAd!!.destroy()
+            fb_NativeAd = null
+        }
         adContainer.setVisibility(View.GONE)
         playerView.visibility = View.VISIBLE
         myStream = ""
@@ -480,6 +493,7 @@ class PlayerFragment : Fragment(), PlaybackPreparer,
 
     override fun onDestroy() {
         super.onDestroy()
+        adContainer.removeAllViews()
         if (fb_NativeAd != null) {
             fb_NativeAd!!.destroy();
             fb_NativeAd = null

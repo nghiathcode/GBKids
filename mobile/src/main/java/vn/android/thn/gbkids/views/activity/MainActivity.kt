@@ -131,6 +131,12 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, View
             drawer_layout.closeDrawers()
             viewManager.pushView(SuggestionsListFragment::class)
         }
+        findViewById<View>(R.id.btn_list_channel).setOnClickListener {
+            player.closeVideo()
+            draggablePanel.closeToLeft()
+            drawer_layout.closeDrawers()
+            viewManager.pushView(ListChannelFragment::class)
+        }
 
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)

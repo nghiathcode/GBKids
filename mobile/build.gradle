@@ -11,8 +11,8 @@ android {
         applicationId "vn.android.thn.gbkids"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 20190426
-        versionName "1.19.04.26"
+        versionCode 20190502
+        versionName "1.19.05.02"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

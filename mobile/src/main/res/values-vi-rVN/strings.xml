@@ -13,4 +13,5 @@
     <string name="fb_ad_banner">1030315647356057_1031722800548675</string>
     <string name="txt_no_download">Chưa có video nào được tải.</string>
     <string name="txt_no_follow">Chưa có kênh  nào được theo dỏi.</string>
+    <string name="txt_channel_list">Danh sách kênh</string>
 </resources>

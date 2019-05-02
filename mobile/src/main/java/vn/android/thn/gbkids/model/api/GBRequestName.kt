@@ -11,4 +11,5 @@ object GBRequestName {
     val LOGO_CHANNEL = "video/%s/channel_logo"
     val VIDEO_CHANNEL = "video/%s/video_list"
     val SUGGESTIONS_LIST = "video/suggestions_list"
+    val CHANNEL_LIST = "channel/list"
 }

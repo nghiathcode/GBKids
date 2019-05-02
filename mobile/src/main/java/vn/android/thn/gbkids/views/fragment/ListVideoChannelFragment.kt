@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import com.facebook.ads.*
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
@@ -76,6 +77,7 @@ class ListVideoChannelFragment :BaseFragment(), PlayListItemListener, VideoChann
     }
     var offset:Int = -1
     var player =SinglePlayerFragment()
+
     private var isNextVideo = true
     private lateinit var presenter:VideoChannelPresenter
     private lateinit var mListView: RecyclerView
@@ -83,6 +85,7 @@ class ListVideoChannelFragment :BaseFragment(), PlayListItemListener, VideoChann
     private var list: MutableList<VideoTable> = ArrayList<VideoTable>()
     var channelID = ""
     private lateinit var player_view_content:FrameLayout
+
     override fun fragmentName(): String {
         return "ListDownloadFragment"
     }
@@ -109,6 +112,7 @@ class ListVideoChannelFragment :BaseFragment(), PlayListItemListener, VideoChann
         adapter = VideoChannelListAdapter(activity!!,list)
         adapter.listener = this
     }
+
 
     override fun layoutFileResourceCommon(): Int {
         return R.layout.fragment_video_channel_list

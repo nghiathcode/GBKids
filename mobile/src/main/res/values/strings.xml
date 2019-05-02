@@ -12,4 +12,5 @@
     <string name="fb_ad_video">1030315647356057_1031715217216100</string>
     <string name="txt_no_download">No videos have been downloaded yet.</string>
     <string name="txt_no_follow">No channels have been followed.</string>
+    <string name="txt_channel_list">List channels</string>
 </resources>
