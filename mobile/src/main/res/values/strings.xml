@@ -1,16 +1,26 @@
 <resources>
     <string name="app_name">GBKids</string>
-    <string name="AD_UNIT_ID">ca-app-pub-2223782486826233/6011960887</string>
-    <string name="AD_UNIT_history">ca-app-pub-2223782486826233/1383301761</string>
-    <string name="AD_UNIT_download">ca-app-pub-2223782486826233/4308848003</string>
     <string name="video_error">Video is Delete!</string>
-    <string name="txt_history">Video History</string>
-    <string name="txt_download">Video Download</string>
-    <string name="txt_Follow">Follow Channels</string>
-    <string name="txt_suggestions">Suggestions Video</string>
-    <string name="fb_ad_banner">1030315647356057_1031722800548675</string>
-    <string name="fb_ad_video">1030315647356057_1031715217216100</string>
-    <string name="txt_no_download">No videos have been downloaded yet.</string>
-    <string name="txt_no_follow">No channels have been followed.</string>
-    <string name="txt_channel_list">List channels</string>
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="fcm_message">FCM Message</string>
+    <string name="AD_UNIT_ID">ca-app-pub-2223782486826233/6011960887</string>
+    <string name="no_video_watched">No videos have been viewed yet</string>
+    <string name="no_video_download">No videos have been downloaded yet</string>
+    <string name="no_video_like">No favorite videos yet</string>
+    <string name="no_video_follow">No channels have been followed</string>
+    <string name="no_video_delete">No videos have been removed</string>
+    <string name="lb_video_watched">Videos watched</string>
+    <string name="lb_video_like">Favorite video</string>
+    <string name="lb_video_follow">Channel has been followed</string>
+    <string name="lb_video_delete">Video has been deleted</string>
+    <string name="lb_noti_setting">Allow to receive notifications</string>
+    <string name="lb_yes">Yes</string>
+    <string name="lb_no">No</string>
+    <string name="msg_retore">Do you want to restore this video?</string>
+    <string name="msg_permission">Please allow GBKids have Permissions access on Storage</string>
+    <string name="hin_search">Search keyword on GBKids</string>
+    <string name="lb_delete">Delete</string>
+    <string name="lb_cancle">Cancle</string>
+    <string name="hin_comment">Comment</string>
+    <string name="msg_complete_download">Video %1s Download Complete.</string>
 </resources>

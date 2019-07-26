@@ -79,4 +79,8 @@ class YoutubeDialog:GBDialogFragment() {
     override fun layoutFileCommon(): Int {
         return R.layout.dialog_data_loading
     }
+//    override fun styleDialog(): Int {
+//        return android.R.style.Theme_Black_NoTitleBar_Fullscreen
+//    }
+
 }

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg_white">
+    <RelativeLayout
+            android:id="@+id/btn_watched"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/padding_10"
+            android:clickable="true"
+            android:background="@drawable/row_select_white_border_botton">
+        <ImageView android:layout_width="40dp"
+                   android:layout_height="40dp"
+                   android:adjustViewBounds="true"
+                   android:contentDescription="@string/app_name"
+                   android:src="@drawable/ico_eye"/>
+        <TextView android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="@dimen/margin_10"
+                  android:textColor="@color/text_black"
+                  android:text="@string/lb_video_watched"
+                  android:textStyle="bold"
+                  android:layout_marginLeft="@dimen/view_40"
+        android:layout_centerVertical="true"/>
+    </RelativeLayout>
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/padding_10"
+            android:clickable="true"
+            android:background="@drawable/row_select_white_border_botton">
+        <ImageView android:layout_width="40dp"
+                   android:layout_height="40dp"
+                   android:adjustViewBounds="true"
+                   android:contentDescription="@string/app_name"
+                   android:src="@drawable/ico_notification"/>
+        <TextView android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="@dimen/margin_10"
+                  android:textColor="@color/text_black"
+                  android:layout_toLeftOf="@+id/sw_noti"
+                  android:text="@string/lb_noti_setting"
+                  android:textStyle="bold"
+                  android:layout_marginLeft="@dimen/view_40"
+                  android:layout_centerVertical="true"/>
+        <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/sw_noti"
+                android:layout_width="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="@dimen/margin_10"
+                android:checked="true"
+                android:layout_height="wrap_content"/>
+    </RelativeLayout>
+    <RelativeLayout
+            android:id="@+id/btn_follow"
+            android:padding="@dimen/padding_10"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:background="@drawable/row_select_white_border_botton">
+        <ImageView android:layout_width="40dp"
+                   android:layout_height="40dp"
+                   android:adjustViewBounds="true"
+                   android:contentDescription="@string/app_name"
+                   android:src="@drawable/ico_following"/>
+        <TextView android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="@dimen/margin_10"
+                  android:textColor="@color/text_black"
+                  android:text="@string/lb_video_follow"
+                  android:textStyle="bold"
+                  android:layout_marginLeft="@dimen/view_40"
+                  android:layout_centerVertical="true"/>
+    </RelativeLayout>
+    <RelativeLayout
+            android:id="@+id/btn_like"
+            android:padding="@dimen/padding_10"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:background="@drawable/row_select_white_border_botton">
+        <ImageView android:layout_width="40dp"
+                   android:layout_height="40dp"
+                   android:adjustViewBounds="true"
+                   android:contentDescription="@string/app_name"
+                   android:src="@drawable/ico_like"/>
+        <TextView android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="@dimen/margin_10"
+                  android:textColor="@color/text_black"
+                  android:text="@string/lb_video_like"
+                  android:textStyle="bold"
+                  android:layout_marginLeft="@dimen/view_40"
+                  android:layout_centerVertical="true"/>
+    </RelativeLayout>
+    <RelativeLayout
+            android:id="@+id/btn_ignore"
+            android:padding="@dimen/padding_10"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:background="@drawable/row_select_white_border_botton">
+        <ImageView android:layout_width="40dp"
+                   android:layout_height="40dp"
+                   android:adjustViewBounds="true"
+                   android:contentDescription="@string/app_name"
+                   android:src="@drawable/ico_delete"/>
+        <TextView android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="@dimen/margin_10"
+                  android:textColor="@color/text_black"
+                  android:text="@string/lb_video_delete"
+                  android:textStyle="bold"
+                  android:layout_marginLeft="@dimen/view_40"
+                  android:layout_centerVertical="true"/>
+    </RelativeLayout>
+</LinearLayout>

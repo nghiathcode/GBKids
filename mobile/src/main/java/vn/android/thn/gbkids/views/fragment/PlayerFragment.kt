@@ -1,536 +1,433 @@
 package vn.android.thn.gbkids.views.fragment
 
-
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
-import android.widget.*
-
-import com.facebook.ads.*
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.fragment.app.Fragment
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.source.ExtractorMediaSource
-
+import com.google.android.exoplayer2.source.LoopingMediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
-import com.google.android.exoplayer2.trackselection.TrackSelection
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray
-import com.google.android.exoplayer2.ui.PlayerControlView
+import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.exoplayer2.ui.PlayerView
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.google.android.exoplayer2.video.VideoListener
-import vn.android.thn.gbfilm.views.listener.YoutubeStreamListener
-import vn.android.thn.gbkids.App
+import vn.android.thn.commons.App
+import vn.android.thn.commons.listener.YoutubeStreamListener
+import vn.android.thn.commons.realm.RealmVideo
+import vn.android.thn.commons.service.YoutubeStreamService
+import vn.android.thn.commons.view.ImageLoader
+import vn.android.thn.gbfilm.views.dialogs.FullScreenDialog
 import vn.android.thn.gbkids.R
-import vn.android.thn.gbkids.constants.Constants
-import vn.android.thn.gbkids.model.db.VideoDownLoad
-import vn.android.thn.gbkids.model.db.VideoTable
-import vn.android.thn.gbkids.model.entity.StreamEntity
-import vn.android.thn.gbkids.utils.LogUtils
-import vn.android.thn.gbkids.utils.Utils
 import vn.android.thn.gbkids.views.activity.MainActivity
-import vn.android.thn.gbkids.views.dialogs.FullScreenDialog
-import vn.android.thn.gbkids.views.services.VideoDeleteService
-import vn.android.thn.gbkids.views.services.YoutubeStreamService
-import vn.android.thn.gbkids.views.view.ImageLoader
+import vn.android.thn.library.utils.GBLog
 import vn.android.thn.library.utils.GBUtils
+import java.util.*
+import kotlin.collections.ArrayList
 
-
-//
-// Created by NghiaTH on 3/19/19.
-// Copyright (c) 2019
-
-class PlayerFragment : Fragment(), PlaybackPreparer,
-    PlayerControlView.VisibilityListener, ViewTreeObserver.OnGlobalLayoutListener,
-    FullScreenDialog.FullScreenListener, YoutubeStreamListener {
-    var density = -1
-    var playLocal = false
-    override fun onStartStream() {
-        video_error.visibility = View.GONE
-        playerView.visibility = View.VISIBLE
-        video_loading.visibility = View.VISIBLE
+class PlayerFragment:Fragment(),PlaybackPreparer , YoutubeStreamListener,FullScreenDialog.FullScreenListener ,VideoListener,Player.EventListener{
+    companion object{
+        var dataSourceMap = Hashtable<String,ExtractorMediaSource>()//<videoId,ExtractorMediaSource>
+        var linkSourceMap = Hashtable<String,String>()
+    }
+    //Player.EventListener
+    override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
+        GBLog.info("PlayerFragment","onPlaybackParametersChanged:",mMainActivity!!.isDebugMode())
     }
 
-    override fun onStream(list_stream: ArrayList<StreamEntity>) {
-        video_error.visibility = View.GONE
-        playerView.visibility = View.VISIBLE
-        video_loading.visibility = View.GONE
+    override fun onSeekProcessed() {
+        GBLog.info("PlayerFragment","onSeekProcessed:",mMainActivity!!.isDebugMode())
+        currentStop = app.player.currentPosition
+    }
 
-        if (list_stream.size>0){
-            for (stream in list_stream){
-                if (stream.quality == density){
-                    LogUtils.info("Play_URL_density:",stream.quality.toString())
-                    play(stream.url)
-                    return
+    override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
+        GBLog.info("PlayerFragment","onTracksChanged:",mMainActivity!!.isDebugMode())
+    }
+
+    override fun onPlayerError(error: ExoPlaybackException?) {
+        GBLog.info("PlayerFragment","onPlayerError:",mMainActivity!!.isDebugMode())
+        if (fullScreen == 1){
+            mFullScreenDialog.onError()
+        }
+        RealmVideo.resetLink(video!!.videoID,GBUtils.dateNow("yyyyMMdd"))
+        linkSourceMap.remove(GBUtils.dateNow("yyyyMMdd")+this.video!!.videoID)
+        dataSourceMap.remove(GBUtils.dateNow("yyyyMMdd")+this.video!!.videoID)
+        activity!!.stopService(Intent(activity, YoutubeStreamService::class.java))
+        var intentServer = Intent(activity, YoutubeStreamService::class.java)
+        intentServer.putExtra("videoId",video!!.videoID)
+        activity!!.startService(intentServer)
+    }
+
+    override fun onLoadingChanged(isLoading: Boolean) {
+        GBLog.info("PlayerFragment","onLoadingChanged:"+isLoading.toString(),mMainActivity!!.isDebugMode())
+        if (!isLoading && fullScreen ==0){
+            img_thumbnail_video.visibility = View.GONE
+            stream_loading.visibility = View.GONE
+        }
+    }
+
+    override fun onPositionDiscontinuity(reason: Int) {
+        GBLog.info("PlayerFragment","onPositionDiscontinuity:"+reason,mMainActivity!!.isDebugMode())
+    }
+
+    override fun onRepeatModeChanged(repeatMode: Int) {
+        GBLog.info("PlayerFragment","onRepeatModeChanged:",mMainActivity!!.isDebugMode())
+    }
+
+    override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+        GBLog.info("PlayerFragment","onShuffleModeEnabledChanged:",mMainActivity!!.isDebugMode())
+    }
+
+    override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
+        GBLog.info("PlayerFragment","onTimelineChanged:",mMainActivity!!.isDebugMode())
+    }
+
+    override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+        GBLog.info("PlayerFragment","onPlayerStateChanged:",mMainActivity!!.isDebugMode())
+        when(playbackState){
+            Player.STATE_ENDED->{
+                GBLog.info("PlayerFragment","onPlayerStateChanged:STATE_ENDED",mMainActivity!!.isDebugMode())
+                if (currentItem>=listVideo.size){
+                    currentItem = listVideo.size-1
                 }
-            }
-            var obj_steam = StreamEntity("",-1)
-            for (stream in list_stream){
-                if (stream.quality!= -1 && stream.quality < density){
-                    if(obj_steam.quality < stream.quality) {
-                        obj_steam = stream
-                    }
+                app.player.setPlayWhenReady(false)
+                if (currentItem<0){
+                    currentItem = 0
                 }
-            }
-            LogUtils.info("Play_URL:",obj_steam.quality.toString())
-            if (videoPlay!= null){
-                if (videoPlay is VideoTable){
-                    (videoPlay as VideoTable).save()
+                if (listVideo.size>currentItem) {
+                    playVideo(listVideo.get(currentItem))
+                    currentItem=currentItem+1
                 }
 
             }
-            play(obj_steam.url)
+            Player.STATE_READY->{
+                GBLog.info("PlayerFragment","onPlayerStateChanged:STATE_READY:"+playerView.height,mMainActivity!!.isDebugMode())
+
+                if (fullScreen == 1){
+                    mFullScreenDialog.onLoading(true)
+                } else{
+                    endLoading()
+                    playerView.visibility = View.VISIBLE
+                    if (isFirstFrame)
+                    stream_loading.visibility = View.GONE
+                }
+            }
+            Player.STATE_BUFFERING->{
+                GBLog.info("PlayerFragment","onPlayerStateChanged:STATE_BUFFERING",mMainActivity!!.isDebugMode())
+
+                if (fullScreen == 1){
+                    mFullScreenDialog.onLoading(false)
+                } else {
+                    stream_loading.visibility = View.VISIBLE
+
+                }
+            }
+            Player.STATE_IDLE->{
+                stream_loading.visibility = View.GONE
+                GBLog.info("PlayerFragment","onPlayerStateChanged:STATE_IDLE",mMainActivity!!.isDebugMode())
+            }
 
         }
 
+    }
+
+
+    //VideoListener
+    override fun onVideoSizeChanged(
+        width: Int,
+        height: Int,
+        unappliedRotationDegrees: Int,
+        pixelWidthHeightRatio: Float
+    ) {
+        GBLog.info("PlayerFragment","onVideoSizeChanged:height"+height+",width:"+width,mMainActivity!!.isDebugMode())
+        endLoading()
+    }
+
+    override fun onRenderedFirstFrame() {
+        GBLog.info("PlayerFragment","onRenderedFirstFrame:height"+playerView.height,mMainActivity!!.isDebugMode())
+        isFirstFrame = true
+        if (mMainActivity!= null){
+            mMainActivity!!.updateHeightVideoPlay(playerView.height)
+        }
+        playerView.visibility = View.VISIBLE
+        video_error.visibility = View.GONE
+        img_thumbnail_video.visibility = View.GONE
+        stream_loading.visibility = View.GONE
+    }
+
+
+    //FullScreenListener
+    override fun onCloseFullScreen(currentStop: Long) {
+        playVideoWhenExitFullScreen()
+    }
+    //YoutubeStreamListener
+    override fun onStartStream() {
+        stream_loading.visibility = View.VISIBLE
+        initLoading(video!!)
+    }
+
+    override fun onNoInternet() {
+        endLoading()
+        if (activity is MainActivity) {
+             (activity as MainActivity).onNoInternet()
+        }
+    }
+    override fun onStream(videoId:String,stream_video: String) {
+        if (videoId.equals(video!!.videoID,true))
+        myStream = stream_video
+        if (mMainActivity!= null) {
+            app.player.prepare(app.videoSource)
+
+        }
+        initializePlayer(myStream)
     }
 
     override fun onStreamError() {
-        playerView.visibility = View.INVISIBLE
-        video_loading.visibility = View.GONE
+        endLoading()
+        img_thumbnail_video.visibility = View.GONE
+        stream_loading.visibility = View.GONE
         video_error.visibility = View.VISIBLE
-        var intentServer = Intent(activity, VideoDeleteService::class.java)
-        intentServer.putExtra("videoId",videoIdCurrent)
-        activity!!.startService(intentServer)
+        playerView.visibility = View.GONE
 
     }
-
-    private var fb_NativeAd: InstreamVideoAdView? = null
-    var currentStop: Long = 0
-    private var mFullScreenDialog = FullScreenDialog()
-    var myStream = ""
-    val TAG = "PlayerFragment"
-    lateinit var playerView: PlayerView
-    var trackSelector: DefaultTrackSelector? = null
-    var player: SimpleExoPlayer? = null
-    lateinit var video_loading: View
-    lateinit var exo_fullscreen_button: View
-    lateinit var fragmentView:View
-    lateinit var img_thumbnail: ImageView
-    var isNewVideo = false
-    var shouldAutoPlay = true
-    lateinit var video_error:TextView
+    var isFirstFrame = false
     var app = App.getInstance()
-    var videoIdCurrent = ""
-    lateinit var listener:PlayerListener
-    var videoPlay:Any? = null
-    lateinit var main_player_view:FrameLayout
-    var initVideo = false
-    var isLoadADComplete = false
-    lateinit var adContainer:LinearLayout
-    override fun preparePlayback() {
-        LogUtils.info(TAG, "preparePlayback")
-    }
-
-    override fun onVisibilityChange(visibility: Int) {
-        playerView.visibility = View.VISIBLE
-        video_loading.visibility = View.GONE
-        LogUtils.info(TAG, "onVisibilityChange")
-    }
+    var video: RealmVideo? = null
+    var mMainActivity :MainActivity?=null
+    lateinit var playerView: PlayerView
+    var shouldAutoPlay = true
+    var currentStop: Long = 0
+    var myStream = ""
+    lateinit var exo_fullscreen_button: View
+    lateinit var stream_loading:View
+    lateinit var img_thumbnail_video:ImageView
+    lateinit var video_error:TextView
+    lateinit var main_player_view: FrameLayout
+    private var mFullScreenDialog = FullScreenDialog()
+    var fullScreen = 0
+    lateinit var exo_progress: DefaultTimeBar
+    var listVideo = ArrayList<RealmVideo>()
+    lateinit var next_button:View
+    lateinit var prev_button:View
+    var mListVideoPlayFragment:ListVideoPlayFragment? = null
+    var currentItem = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val bandwidthMeter = DefaultBandwidthMeter()
-        var videoTrackSelectionFactory: TrackSelection.Factory = AdaptiveTrackSelection.Factory(bandwidthMeter)
-        trackSelector = DefaultTrackSelector(videoTrackSelectionFactory)
+        app.player!!.addVideoListener(this)
+        app.player!!.addListener(this)
     }
-
-    //fb ad
-    private fun pxToDP(px: Int): Int {
-        return (px / this.resources.displayMetrics.density).toInt()
-    }
-    fun loadFBNativeAd() {
-        fb_NativeAd =  InstreamVideoAdView(activity, getString(R.string.fb_ad_video),
-            AdSize(
-                pxToDP(adContainer.getMeasuredWidth()),
-                pxToDP(adContainer.getMeasuredHeight())
-            ))
-        fb_NativeAd!!.setAdListener(object : InstreamVideoAdListener {
-
-            override fun onAdVideoComplete(p0: Ad?) {
-                LogUtils.error(TAG,"Instream video completed!")
-
-                adContainer.removeAllViews();
-                adContainer.setVisibility(View.GONE)
-                playerView.visibility = View.VISIBLE
-                initializePlayer(myStream)
-                if (fb_NativeAd != null) {
-
-                    fb_NativeAd!!.destroy();
-                    fb_NativeAd = null
-                }
-            }
-            override fun onAdClicked(p0: Ad?) {
-                LogUtils.error(TAG, "Native ad clicked!")
-                adContainer.removeAllViews();
-                adContainer.setVisibility(View.GONE)
-                playerView.visibility = View.VISIBLE
-                initializePlayer(myStream)
-                if (fb_NativeAd != null) {
-                    fb_NativeAd!!.destroy();
-                    fb_NativeAd = null
-                }
-            }
-
-
-
-            override fun onError(ad: Ad?, adError: AdError?) {
-                LogUtils.error(TAG, "Native ad failed to load: " + adError!!.getErrorMessage())
-                playerView.visibility = View.VISIBLE
-
-//                initializePlayer(myStream)
-            }
-
-            override fun onAdLoaded(ad: Ad?) {
-                LogUtils.error(TAG, "Native ad is loaded and ready to be displayed!")
-                if (fb_NativeAd == null || !fb_NativeAd!!.isAdLoaded) {
-                    return
-                }
-                if (fb_NativeAd!!.isAdInvalidated()) {
-                    return
-                }
-                releasePlayer()
-
-                adContainer = fragmentView.findViewById(R.id.adContainer);
-                adContainer.removeAllViews()
-                adContainer.addView(fb_NativeAd)
-
-                fb_NativeAd!!.show()
-                playerView.visibility = View.GONE
-                adContainer.visibility = View.VISIBLE
-                // Inflate Native Ad into Container
-
-            }
-
-            override fun onLoggingImpression(p0: Ad?) {
-                LogUtils.error(TAG, "Native ad impression logged!")
-
-
-            }
-
-        })
-        // Request an ad
-        fb_NativeAd!!.loadAd()
-    }
-
-
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_player, container, false)
-        main_player_view = view.findViewById(R.id.main_player_view)
-        mFullScreenDialog.listener = this
         playerView = view.findViewById(R.id.player_view)!!
-        video_loading = view.findViewById(R.id.video_loading)
-        video_error = view.findViewById(R.id.video_error)
-        video_error.visibility = View.GONE
-        val h: Int = playerView.getResources().getConfiguration().screenHeightDp
-        val w = playerView.getResources().getConfiguration().screenWidthDp
-//        LogUtils.info(fragmentName() + "VideoPaler:", "height : " + h + " weight: " + w)
-        img_thumbnail = view.findViewById(R.id.img_thumbnail)
-        exo_fullscreen_button = view.findViewById(R.id.exo_fullscreen_button)
-        exo_fullscreen_button.setOnClickListener {
-            activity!!.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-            player!!.stop()
-            currentStop = player!!.currentPosition
-            mFullScreenDialog.listener = this
-            mFullScreenDialog.trackSelector = trackSelector!!
-            mFullScreenDialog.videoSource = videoSourceFullScreen
-            mFullScreenDialog.currentStop = currentStop
-            (activity as MainActivity).viewManager.showDialog(mFullScreenDialog)
-        }
-        adContainer = view.findViewById(R.id.adContainer)
-        fragmentView = view!!
 
+        stream_loading = view.findViewById(R.id.stream_loading)
+        img_thumbnail_video = view.findViewById(R.id.img_thumbnail_video)
+        video_error = view.findViewById(R.id.video_error)
+        main_player_view = view.findViewById(R.id.main_player_view)
+        exo_fullscreen_button = view.findViewById(R.id.exo_fullscreen_button)
+        exo_progress =  view.findViewById(R.id.exo_progress)
+
+        next_button = view.findViewById(R.id.play_next)
+        prev_button = view.findViewById(R.id.play_prev)
+        prev_button.setOnClickListener {
+            currentItem = currentItem -1
+            if (currentItem<=0){
+                currentItem = 0
+            }
+            app.player.setPlayWhenReady(false)
+            playVideo(listVideo.get(currentItem))
+        }
+        next_button.setOnClickListener {
+
+            if (currentItem>=listVideo.size){
+                currentItem = listVideo.size-1
+            }
+            app.player.setPlayWhenReady(false)
+            if (currentItem<0){
+                currentItem = 0
+            }
+            playVideo(listVideo.get(currentItem))
+            currentItem=currentItem+1
+        }
+        App.getInstance().mYoutubeStreamListener = this
+        if (activity is MainActivity) {
+            mMainActivity = activity as MainActivity
+            exo_fullscreen_button.setOnClickListener {
+                activity!!.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                mFullScreenDialog.listener = this
+                mFullScreenDialog.player = app.player
+                mFullScreenDialog.mEventListener = this
+                mFullScreenDialog.mVideoListener = this
+                playerView.player = null
+                app.player.setPlayWhenReady(false)
+                fullScreen = 1
+                (activity as MainActivity).viewManager.showDialog(mFullScreenDialog)
+            }
+        }
         return view
     }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        density = Utils.getScreen(activity!!)
-        app.mYoutubeStreamListener = this
-
-    }
-
-    fun play(streamVideo: String) {
-        myStream = streamVideo
-        initializePlayer(streamVideo)
-    }
-
-    lateinit var videoSource: ExtractorMediaSource
-    lateinit var videoSourceFullScreen: ExtractorMediaSource
-
-    fun initializePlayer(streamVideo: String) {
-        val mp4VideoUri = Uri.parse(streamVideo)
-        val dataSourceFactory = DefaultDataSourceFactory(activity, Util.getUserAgent(activity, "gbkids"))
-        videoSource = ExtractorMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(mp4VideoUri)
-
-        videoSourceFullScreen = ExtractorMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(mp4VideoUri)
-//            var videoSource = HlsMediaSource(mp4VideoUri, dataSourceFactory, 1, null, null);
-        if (!GBUtils.isEmpty(streamVideo)) {
-            if (player == null) {
-                player = ExoPlayerFactory.newSimpleInstance(activity, trackSelector)
-            }
-            player!!.addVideoListener(object : VideoListener {
-                override fun onVideoSizeChanged(
-                    width: Int,
-                    height: Int,
-                    unappliedRotationDegrees: Int,
-                    pixelWidthHeightRatio: Float
-                ) {
-                    LogUtils.info(TAG, "onVideoSizeChanged:h" + height.toString() + " w:" + width.toString())
-//                    (activity as MainActivity).updateHeightVideoPlay(height)
-                    if (currentStop>0){
-                        player!!.seekTo(currentStop)
-                    }
-                }
-
-                override fun onRenderedFirstFrame() {
-                    LogUtils.info(TAG, "onRenderedFirstFrame")
-                    playerView.visibility = View.VISIBLE
-                    video_loading.visibility = View.GONE
-                    initVideo = true
-
-                }
-
-            })
-            player!!.addListener(object :Player.EventListener{
-                override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-                    LogUtils.info(TAG, "onPlaybackParametersChanged")
-                }
-
-                override fun onSeekProcessed() {
-                    LogUtils.info(TAG, "onSeekProcessed")
-                }
-
-                override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-                    LogUtils.info(TAG, "onTracksChanged")
-                }
-
-                override fun onPlayerError(error: ExoPlaybackException?) {
-                    LogUtils.info(TAG, "onPlayerError")
-                }
-
-                override fun onLoadingChanged(isLoading: Boolean) {
-                    LogUtils.info(TAG, "onLoadingChanged")
-                    if (!isLoading && initVideo){
-                        LogUtils.info(TAG, "onLoadingChanged:"+main_player_view.height)
-                        Handler().postDelayed(object :Runnable{
-                            override fun run() {
-                                playerView.visibility = View.VISIBLE
-                                video_loading.visibility = View.GONE
-                                var params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,main_player_view.height)
-                                main_player_view.setLayoutParams(params)
-                                (activity as MainActivity).updateHeightVideoPlay(main_player_view.height)
-                                if (!isLoadADComplete) {
-                                    isLoadADComplete =true
-                                    Handler().postDelayed(object :Runnable{
-                                        override fun run() {
-                                            loadFBNativeAd()
-                                        }
-                                    },15000)
-                                }
-                            }
-                        },150)
-
-                    }
-                }
-
-                override fun onPositionDiscontinuity(reason: Int) {
-                    LogUtils.info(TAG, "onPositionDiscontinuity")
-                }
-
-                override fun onRepeatModeChanged(repeatMode: Int) {
-                    LogUtils.info(TAG, "onRepeatModeChanged")
-                }
-
-                override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                    LogUtils.info(TAG, "onShuffleModeEnabledChanged")
-                }
-
-                override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
-                    LogUtils.info(TAG, "onTimelineChanged")
-                }
-
-                override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                    LogUtils.info(TAG, "onPlayerStateChanged")
-                    if (playbackState ==Player.STATE_ENDED){
-                        LogUtils.info(TAG, "onPlayerStateChanged:END VIDEO")
-                        val obj = listener.nextVideo()
-                        if (obj!= null){
-                            playNewVideo(obj)
-                        }
-
-                    }
-                    if (playbackState == Player.STATE_READY){
-                        initVideo = true
-                    }
-                }
-
-            })
-            playerView.useController = true
-            playerView.player = player
-            playerView.setPlaybackPreparer(this)
-            player!!.prepare(videoSource)
-            player!!.setPlayWhenReady(shouldAutoPlay)
-            playerView.visibility = View.VISIBLE
-            video_loading.visibility = View.VISIBLE
+    fun showController(isShow:Boolean = true){
+        if (playerView!= null) {
+            playerView.useController = isShow
         }
     }
-
-
-
-    /**
-     * playVideoWhenExitFullScreen
-     */
-    fun playVideoWhenExitFullScreen(){
-        player!!.prepare(this.videoSource)
-        player!!.setPlayWhenReady(true)
-    }
-    /**
-     * playNewVideo
-     */
-    fun playNewVideo(obj:VideoTable){
-        initVideo = false
-        isLoadADComplete = false
-        adContainer.removeAllViews()
-        if (fb_NativeAd != null) {
-            fb_NativeAd!!.destroy()
-            fb_NativeAd = null
+    fun playVideo(video:RealmVideo){
+        isFirstFrame = false
+        if (this.video!= null){
+            linkSourceMap.remove(GBUtils.dateNow("yyyyMMdd")+this.video!!.videoID)
+            dataSourceMap.remove(GBUtils.dateNow("yyyyMMdd")+this.video!!.videoID)
+            app.player.playWhenReady = false
+            RealmVideo.updateTime(this.video!!.videoID,app.player.duration,app.player.currentPosition)
         }
-        app.mYoutubeStreamListener = this
-        this.playLocal = false
-        closeVideo()
-        videoPlay = obj
-        myStream = ""
-        isNewVideo = true
+        if (mListVideoPlayFragment!=null){
+            mListVideoPlayFragment!!.mPlayerFragment = this
+            mListVideoPlayFragment!!.presenter!!.videoCurrent = video
+            mListVideoPlayFragment!!.loadNewList()
+        }
+
+        this.video = video
+        if (this.video!!.videoTimeCurrent>0 && GBUtils.dateNow("yyyyMMdd").equals(this.video!!.expiredVideo,true)){
+            currentStop = this.video!!.videoTimeCurrent
+            var time_haft = this.video!!.videoTime/2
+            if (currentStop>time_haft)currentStop=0
+            if (currentStop<0) currentStop=0
+            if (time_haft<0) currentStop=0
+        } else{
+            currentStop = 0
+        }
+
         shouldAutoPlay = true
-        currentStop = 0
-        videoIdCurrent = obj.videoID
-        video_error.visibility = View.GONE
-        playerView.visibility = View.GONE
-        video_loading.visibility = View.VISIBLE
-        if (App.getInstance().appStatus == 1){
-            if (GBUtils.isEmpty(obj.urlImage)){
-                var thumbnails =obj.toImage()
-                if (thumbnails!= null) {
-                    if (thumbnails.maxres != null) {
-                        obj.urlImage = thumbnails!!.maxres!!.url
-                    } else if (thumbnails.high != null) {
-                        obj.urlImage = thumbnails!!.high!!.url
-                    } else if (thumbnails.medium != null) {
-                        obj.urlImage =  thumbnails!!.medium!!.url
-                    } else if (thumbnails.standard != null) {
-                        obj.urlImage = thumbnails!!.standard!!.url
-                    } else if (thumbnails.default != null) {
-                        obj.urlImage = thumbnails!!.default!!.url
-                    }
-                }
-            }
-            ImageLoader.loadImagePlay(img_thumbnail, obj.urlImage,obj.videoID)
-        } else {
-            ImageLoader.loadImagePlay(img_thumbnail, Constants.DOMAIN + "/thumbnail_high/" + obj.videoID,obj.videoID)
-        }
 
-        activity!!.stopService(Intent(activity, YoutubeStreamService::class.java))
         var intentServer = Intent(activity, YoutubeStreamService::class.java)
-        intentServer.putExtra("videoId",obj.videoID)
+        intentServer.putExtra("videoId", video.videoID)
         activity!!.startService(intentServer)
     }
-    fun playVideoLocal(obj:VideoDownLoad){
-        app.mYoutubeStreamListener = this
-        this.playLocal = true
-        closeVideo()
-        videoPlay = obj
-        myStream = ""
-        isNewVideo = true
-        shouldAutoPlay = true
-        currentStop = 0
-        videoIdCurrent = obj.videoID
+    fun initLoading(video:RealmVideo){
         video_error.visibility = View.GONE
-        playerView.visibility = View.VISIBLE
-        video_loading.visibility = View.VISIBLE
-        ImageLoader.loadImagePlay(img_thumbnail, obj.thumbnails,obj.videoID)
+        playerView.visibility = View.INVISIBLE
+        img_thumbnail_video.visibility = View.VISIBLE
+        ImageLoader.loadImagePlay(img_thumbnail_video,video.imageLarger,video.videoID)
 
-        play(obj.videoPath)
     }
-    fun closeVideo(){
-        releasePlayer()
-        adContainer.removeAllViews()
-        if (fb_NativeAd != null) {
-            fb_NativeAd!!.destroy()
-            fb_NativeAd = null
+    fun endLoading(){
+        var params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,img_thumbnail_video.height)
+        main_player_view.setLayoutParams(params)
+        playerView.visibility = View.VISIBLE
+        video_error.visibility = View.GONE
+    }
+    fun initializePlayer(streamVideo: String) {
+
+        if (listVideo.size==0){
+            next_button.visibility = View.GONE
+            prev_button.visibility = View.GONE
+        }else {
+            next_button.visibility = View.VISIBLE
+            prev_button.visibility = View.VISIBLE
         }
-        adContainer.setVisibility(View.GONE)
-        playerView.visibility = View.VISIBLE
-        myStream = ""
-        isNewVideo = true
-        shouldAutoPlay = true
-        currentStop = 0
-        playerView.visibility = View.VISIBLE
-        video_loading.visibility = View.VISIBLE
+
+        if (GBUtils.isEmpty(streamVideo)) return
+        if (fullScreen == 1){
+            app.player.setPlayWhenReady(shouldAutoPlay)
+            return
+        }
+        if (mMainActivity!= null){
+            playerView.useController = true
+
+            if (app.videoSource!= null){
+                if (playerView.player==null){
+                    playerView.player = app.player
+                }
+            }
+            playerView.setPlaybackPreparer(this)
+            if (currentStop > 0) {
+                app.player.seekTo(currentStop)
+            }else{
+                app.player.seekTo(currentStop)
+            }
+
+            app.player.setPlayWhenReady(shouldAutoPlay)
+        }
+    }
+    fun loadList(){
+        if (listVideo.size==0){
+            next_button.visibility = View.GONE
+            prev_button.visibility = View.GONE
+        }else {
+            next_button.visibility = View.VISIBLE
+            prev_button.visibility = View.VISIBLE
+        }
+
     }
     fun releasePlayer() {
-        if (player != null) {
-            currentStop = player!!.currentPosition
-//            updateStartPosition()
-            shouldAutoPlay = player!!.playWhenReady
-            player!!.release()
-            player = null
-//            trackSelector = null
+        if (app.player != null) {
+            if (app.player.playWhenReady) {
+                currentStop = app.player.currentPosition
+                GBLog.info("PlayerFragment_State","releasePlayer:"+app.player.currentPosition,mMainActivity!!.isDebugMode())
+                shouldAutoPlay = app.player.playWhenReady
+            } else {
+                shouldAutoPlay = false
+            }
+            app.player.setPlayWhenReady(false)
+        }
+        if (this.video!= null){
+            RealmVideo.updateTime(this.video!!.videoID,app.player.duration,app.player.currentPosition)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        adContainer.removeAllViews()
-        if (fb_NativeAd != null) {
-            fb_NativeAd!!.destroy();
-            fb_NativeAd = null
-        }
+        GBLog.info("PlayerFragment_State","onDestroy:",mMainActivity!!.isDebugMode())
         releasePlayer()
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        if (Util.SDK_INT <= 23 || player == null) initializePlayer(myStream)
     }
 
     override fun onPause() {
         super.onPause()
-
+        GBLog.info("PlayerFragment_State","onPause:",mMainActivity!!.isDebugMode())
         if (Util.SDK_INT <= 23) releasePlayer()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        GBLog.info("PlayerFragment_State","onResume:",mMainActivity!!.isDebugMode())
+//        if (Util.SDK_INT <= 23 ){
+//            initializePlayer(myStream)
+//        } else{
+//            app.player.setPlayWhenReady(shouldAutoPlay)
+//        }
+        if (!GBUtils.isEmpty(myStream))
+        initializePlayer(myStream)
     }
 
     override fun onStop() {
         super.onStop()
-
+        GBLog.info("PlayerFragment_State","onStop:",mMainActivity!!.isDebugMode())
         if (Util.SDK_INT > 23) releasePlayer()
     }
-    override fun onCloseFullScreen(currentStop: Long) {
-        this.currentStop = currentStop
 
-        playVideoWhenExitFullScreen()
+    override fun onDestroyView() {
+        super.onDestroyView()
+        GBLog.info("PlayerFragment_State","onDestroyView:",mMainActivity!!.isDebugMode())
     }
-
-    override fun onGlobalLayout() {
-        if (img_thumbnail.measuredHeight > 0) {
-            img_thumbnail.getViewTreeObserver().removeGlobalOnLayoutListener(this)
-            LogUtils.info(TAG, "onGlobalLayout:" + img_thumbnail.measuredHeight.toString())
+    /**
+     * playVideoWhenExitFullScreen
+     */
+    fun playVideoWhenExitFullScreen(){
+        fullScreen = 0
+        if (mMainActivity!= null) {
+            playerView.player = app.player
+            app.player.setPlayWhenReady(shouldAutoPlay)
         }
     }
-    interface PlayerListener{
-        fun nextVideo():VideoTable?
+    //PlaybackPreparer
+    override fun preparePlayback() {
+        GBLog.info("PlayerFragment","preparePlayback:",mMainActivity!!.isDebugMode())
     }
 }

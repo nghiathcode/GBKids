@@ -1,115 +1,144 @@
 package vn.android.thn.gbkids.views.fragment
 
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.widget.DefaultItemAnimator
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import vn.android.thn.gbfilm.views.listener.ListItemListener
-import vn.android.thn.gbfilm.views.listener.LoadMoreListener
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import vn.android.thn.commons.listener.ListItemListener
+import vn.android.thn.commons.realm.RealmVideo
 import vn.android.thn.gbkids.R
-import vn.android.thn.gbkids.model.db.VideoTable
-import vn.android.thn.gbkids.presenter.NewVideoPresenter
-import vn.android.thn.gbkids.presenter.SearchVideoPresenter
+import vn.android.thn.gbkids.presenter.SearchResultPresenter
 import vn.android.thn.gbkids.views.activity.MainActivity
-import vn.android.thn.gbkids.views.adapter.NewListAdapter
-import vn.android.thn.gbkids.views.adapter.SearchListAdapter
-import vn.android.thn.gbkids.views.view.ToolBarView
-import vn.android.thn.gbkids.views.view.ToolBarViewType
-import java.util.ArrayList
+import vn.android.thn.gbkids.views.adapter.ListVideoAdapter
+import vn.android.thn.library.utils.GBLog
 
-
-//
-// Created by NghiaTH on 3/16/19.
-// Copyright (c) 2019
-
-class SearchResultFragment:BaseFragment(),SearchVideoPresenter.SearchMvp , ListItemListener , LoadMoreListener {
-    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+class SearchResultFragment : BaseFragment(), ListItemListener {
     private lateinit var mListView: RecyclerView
-    private lateinit var adapter: SearchListAdapter
-    lateinit var presenter: SearchVideoPresenter
-    var offset:Int = -1
-    private var list: MutableList<VideoTable> = ArrayList<VideoTable>()
-    var keyword = ""
-    override fun fragmentName(): String {
-        return "SearchResultFragment"
+    var presenter: SearchResultPresenter? = null
+    var currentItem = -1
+    var listType = 0
+    var keyword:String=""
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    override fun titleView(): String {
+        return "ListVideo"
     }
 
     override fun initView() {
         mListView = findViewById<RecyclerView>(R.id.list)!!
-        swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)!!
-        mListView.adapter = adapter
-        adapter.notifyDataSetChanged()
+        mListView.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(activity!!)
         mListView.setLayoutManager(mLayoutManager)
         mListView.setItemAnimator(DefaultItemAnimator())
+        swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)!!
         swipeRefreshLayout.setColorSchemeResources(
             *intArrayOf(
-                R.color.colorPrimary,
-                R.color.colorPrimary,
-                R.color.colorPrimary
+                R.color.loading,
+                R.color.loading,
+                R.color.loading
             )
         )
         swipeRefreshLayout.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener {
             override fun onRefresh() {
-                list.clear()
-
-                offset =0
-                presenter.searchKeyword(keyword,0,false)
+                app.download()
+                presenter!!.adapter.isLoadMore = false
+                presenter!!.loadListVideoKeyWord(0,keyword)
             }
 
         })
-        (activity as MainActivity).loadKeyWord(keyword)
+        mListView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                GBLog.info("HomeFragment","onScrollStateChanged:"+newState,isDebugMode())
+                when(newState){
+                    RecyclerView.SCROLL_STATE_IDLE->{
+                        if (recyclerView.layoutManager!= null){
+                            var childCount = recyclerView.layoutManager!!.childCount
+                            for (child in 0 until childCount){
+                                if (recyclerView.layoutManager!!.getChildAt(child)!=null){
+                                    var index = recyclerView.findContainingViewHolder( recyclerView.layoutManager!!.getChildAt(child)!!)!!.layoutPosition
+                                    if ( index<presenter!!.list.size) {
+                                        GBLog.info(
+                                            "HomeFragment",
+                                            "SCROLL_STATE_IDLE:" + recyclerView.layoutManager!!.childCount + ":" + index + "title:" + presenter!!.list.get(
+                                                index
+                                            ).title,
+                                            isDebugMode()
+                                        )
+                                        app.loadFirstStream(presenter!!.list.get(index).videoID)
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                    RecyclerView.SCROLL_STATE_DRAGGING->{
+                        GBLog.info("HomeFragment","SCROLL_STATE_DRAGGING:",isDebugMode())
+                    }
+                    RecyclerView.SCROLL_STATE_SETTLING->{
+                        GBLog.info("HomeFragment","SCROLL_STATE_SETTLING:",isDebugMode())
+                    }
+                }
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                GBLog.info("HomeFragment","onScrolled:",isDebugMode())
+                if (dx ==0 && dy ==0){
+                    if (recyclerView.layoutManager!= null){
+                        var childCount = recyclerView.layoutManager!!.childCount
+                        for (child in 0 until childCount){
+                            if (recyclerView.layoutManager!!.getChildAt(child)!=null){
+                                var index = recyclerView.findContainingViewHolder( recyclerView.layoutManager!!.getChildAt(child)!!)!!.layoutPosition
+
+                                if ( index<presenter!!.list.size) {
+                                    GBLog.info(
+                                        "HomeFragment",
+                                        "SCROLL_STATE_IDLE:" + recyclerView.layoutManager!!.childCount + ":" + index + "title:" + presenter!!.list.get(
+                                            index
+                                        ).title,
+                                        isDebugMode()
+                                    )
+                                    app.loadFirstStream(presenter!!.list.get(index).videoID)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        presenter!!.initView()
     }
 
     override fun loadData() {
-        if (!firstLoad){
-            presenter.searchKeyword(keyword)
-        }
-
+        presenter!!.loadListVideoKeyWord(0,keyword)
     }
+
     override fun firstInit() {
-        presenter = SearchVideoPresenter(this,activity)
-        adapter = SearchListAdapter(activity!!,list)
-        adapter.listener = this
+        if (presenter == null) {
+            presenter = SearchResultPresenter(this, activity,listType)
+        }
     }
-
-    override fun showToolBarViewType(): ToolBarViewType {
-        return ToolBarViewType.SEARCH_KEYWORD
-    }
-
-    override fun toolBarViewMode(): ToolBarView {
-        return ToolBarView.NORMAL
-    }
-    override fun layoutFileResourceCommon(): Int {
-        return R.layout.fragment_search_result
-    }
-
-    override fun onSearch(result: MutableList<VideoTable>, offset: Int) {
-        firstLoad = true
+    fun onListVideo(adapter: ListVideoAdapter){
         swipeRefreshLayout.isRefreshing = false
-        if (result!= null){
-            this.offset = offset
-            list.addAll(result)
-
-            if (offset!=-1){
-                adapter.loadMore(true,this)
-            } else {
-                adapter.loadMore(false,this)
-            }
-            adapter.notifyDataSetChanged()
+        if (mListView.adapter== null){
+            mListView.adapter = adapter
+        } else{
+            mListView.adapter!!.notifyDataSetChanged()
         }
     }
 
-    override fun onItemClick(obj: Any, pos: Int) {
-//        val detail = VideoDetailFragment()
-//        detail.videoId = (obj as VideoTable).videoID!!
-//        viewManager.pushView(detail)
-        var videoPlay = (obj as VideoTable)
-        videoPlay.save()
-        (activity as MainActivity).showPlayer(videoPlay,true)
+    override fun layoutFileResourceContent(): Int {
+        return R.layout.fragment_list_video
     }
-
-    override fun onLoadMore() {
-        presenter.searchKeyword(keyword,offset,false)
+    //ListItemListener
+    override fun onItemClick(obj: Any, pos: Int) {
+        currentItem = pos
+        GBLog.info("ListVideoPlayFragment","onItemClick:",isDebugMode())
+        if (activity!= null){
+            if (activity is MainActivity){
+                (activity as MainActivity).requestListVideo(obj as RealmVideo)
+            }
+        }
+    }
+    fun currentKeyWord():String{
+        return keyword
     }
 }

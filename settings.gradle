@@ -1,5 +1,4 @@
-include ':mobile', ':tv', ':gblibrary', ":draggableview"
+include ':mobile', ':tv', ':gblibrary',":youtubeExtractor", ":draggableview"
 project(':gblibrary').projectDir = new File(settingsDir, '../gblibrary')
-//project(':gbyoutubelibrary').projectDir = new File(settingsDir, '../gbyoutubelibrary')
-//':gbyoutubelibrary',
+project(':youtubeExtractor').projectDir = new File(settingsDir, '../youtubeExtractor')
 project(':draggableview').projectDir = new File(settingsDir, '../draggableview')

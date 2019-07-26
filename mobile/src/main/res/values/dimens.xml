@@ -40,6 +40,8 @@
     <dimen name="padding_25">25dp</dimen>
     <dimen name="padding_40">40dp</dimen>
     <dimen name="view_30">30dp</dimen>
+    <dimen name="view_35">35dp</dimen>
+    <dimen name="view_20">20dp</dimen>
     <dimen name="view_75">75dp</dimen>
     <dimen name="view_32">32dp</dimen>
     <dimen name="view_40">40dp</dimen>

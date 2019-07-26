@@ -1,389 +1,502 @@
 package vn.android.thn.gbkids.views.activity
 
 import android.Manifest
-import android.content.pm.ActivityInfo
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.view.View
-import vn.android.thn.gbkids.R
-import vn.android.thn.gbkids.presenter.MainPresenter
-import android.support.design.widget.AppBarLayout
-import android.support.design.widget.CoordinatorLayout
-import android.support.v7.widget.Toolbar
-import android.view.ViewTreeObserver
-import com.google.android.gms.ads.AdRequest
+import android.widget.*
+import androidx.appcompat.widget.Toolbar
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.google.android.gms.ads.MobileAds
+
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.tabs.TabLayout
+import com.google.firebase.iid.FirebaseInstanceId
+import io.realm.Realm
 import thn.android.vn.draggableview.DraggableListener
 import thn.android.vn.draggableview.DraggablePanel
-import vn.android.thn.gbkids.R.id.toolbar
-import vn.android.thn.gbkids.constants.Constants
-import vn.android.thn.gbkids.model.db.VideoTable
-import vn.android.thn.gbkids.utils.LogUtils
-import vn.android.thn.gbkids.views.dialogs.HistoryKeyWordDialog
-import vn.android.thn.gbkids.views.listener.SearchListener
-import vn.android.thn.gbkids.views.view.ImageLoader
-import vn.android.thn.gbkids.views.view.ToolBarView
-import vn.android.thn.gbkids.views.view.ToolBarViewType
-import android.os.StrictMode.setThreadPolicy
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
-import android.view.LayoutInflater
-import android.widget.*
-import com.facebook.ads.*
-import jp.co.tss21.monistor.models.GBDataBase
+import vn.android.thn.commons.GBRealm
+import vn.android.thn.commons.listener.DownloadListener
+import vn.android.thn.commons.listener.FileDownloadListener
+import vn.android.thn.commons.realm.RealmHistorySearch
+import vn.android.thn.commons.realm.RealmTableDateUpdate
+import vn.android.thn.commons.realm.RealmVideo
+import vn.android.thn.commons.view.ToolBarView
 import vn.android.thn.gbfilm.views.dialogs.YoutubeDialog
+import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.constants.RequestCode
-import vn.android.thn.gbkids.model.db.VideoDownLoad
+import vn.android.thn.gbkids.model.realm.RealmSetting
+import vn.android.thn.gbkids.views.dialogs.DownLoadDialog
+import vn.android.thn.gbkids.views.dialogs.SearchDialog
 import vn.android.thn.gbkids.views.fragment.*
+import vn.android.thn.library.utils.GBLog
+import vn.android.thn.library.utils.GBUtils
 import vn.android.thn.library.views.dialogs.GBDialogContentEntity
 
-
-//
-// Created by NghiaTH on 2/26/19.
-// Copyright (c) 2019
-
-class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, ViewTreeObserver.OnGlobalLayoutListener {
-    override fun onGlobalLayout() {
-        if (top_view_video.measuredHeight > 0) {
-            top_view_video.getViewTreeObserver().removeGlobalOnLayoutListener(this)
-            updateHeightVideoPlay(top_view_video.measuredHeight)
-            LogUtils.info("MainActivity", "onGlobalLayout:" + top_view_video.measuredHeight.toString())
+class MainActivity : ActivityBase() , DownloadListener , SearchDialog.SearchListener , FileDownloadListener {
+    override fun onComplete(videoId: String) {
+        var item = RealmVideo.getObject(videoId)
+        if (item!= null) {
+            Toast.makeText(this,getString(R.string.msg_complete_download,item.title), Toast.LENGTH_SHORT).show()
         }
     }
-
-    override fun searchKeyWord(q: String) {
+    override fun onKeyWord(keyword: String) {
+        if (GBUtils.isEmpty(keyword)){
+            viewManager.hideDialog()
+            return
+        }
+        var history = RealmHistorySearch()
+        history.keyword = keyword
+        history.dateUpdate = GBUtils.dateNow()
+        GBRealm.save(history)
+        val fragment = viewManager.getViewCurrent()
+        if (fragment!= null){
+            if (fragment is BaseFragment){
+                fragment.onSearch(keyword)
+            }
+        }
         viewManager.hideDialog()
-        var searchResult = SearchResultFragment()
-        searchResult.keyword = q
-        viewManager.pushView(searchResult)
     }
 
-    override fun apiError() {
+    override fun loadKeyWord(): String {
+        val fragment = viewManager.getViewCurrent()
+        if (fragment!= null){
+            if (fragment.childFragmentManager.backStackEntryCount>0){
+                var result = fragment.childFragmentManager.findFragmentById(R.id.content_view)
+                if (result!= null) {
+                    if (result is SearchResultFragment) {
+                        return result.currentKeyWord()
+                    }
+                }
+            }
 
+        }
+        return ""
     }
-
-    override fun onNetworkFail() {
-
-    }
-
-    override fun onRegister() {
-        viewManager.addView(NewFragment::class)
-    }
-
-    private val TAG = "MainActivity"
-
-    lateinit var drawer_layout: DrawerLayout
-    lateinit var presenter: MainPresenter
-    lateinit var txt_key_word: TextView
+    var videoDownLoad = ""
+    var home = HomeFragment()
+    var top = TopFragment()
+    var my =MyFragment()
+    var channel = ChannelFragment()
+    var offline = ListVideoOfflineFragment()
+    var videoListPlayer = ListVideoPlayFragment()
+    lateinit var toolbar: Toolbar
+    lateinit var btn_back:View
+    lateinit var title_bar: TextView
+    var tabCurrent = -1
     lateinit var draggablePanel: DraggablePanel
-    lateinit var mn_action_search: View
-    lateinit var thumbnail_video: ImageView
-    lateinit var view_search_bar: View
-
-    var keyword = ""
-    var player = PlayerFragment()
-    var videoListPlayer = PlayerVideoListFragment()
-    lateinit var top_view_video: View
-    var videoTableDownload: VideoTable? = null
-    lateinit var btn_list_download:View
+    lateinit var btn_search:View
+    lateinit var top_view :ImageView
+    lateinit var txt_keyword:TextView
+    var player=PlayerFragment()
+    lateinit var search_result_view:View
+    lateinit var view_delete_action:View
+    lateinit var view_no_data:TextView
     override fun onCreate(savedInstanceState: Bundle?) {
-        presenter = MainPresenter(this, this)
         super.onCreate(savedInstanceState)
         if (android.os.Build.VERSION.SDK_INT > 9) {
             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
             StrictMode.setThreadPolicy(policy)
         }
 
-        drawer_layout = findViewById(R.id.drawer_layout)
-        draggablePanel = findViewById(R.id.draggable_panel)!!
-        btn_list_download = findViewById<View>(R.id.btn_list_download)
-        if (app.myDevice .showDownLoad == 1){
-            btn_list_download.visibility = View.VISIBLE
-        } else{
-            btn_list_download.visibility = View.GONE
-        }
-        btn_list_download.setOnClickListener {
-            player.closeVideo()
-            draggablePanel.closeToLeft()
-            viewManager.pushView(ListDownloadFragment::class)
-        }
-        findViewById<View>(R.id.btn_list_history).setOnClickListener {
-            player.closeVideo()
-            draggablePanel.closeToLeft()
-            viewManager.pushView(ListHistoryFragment::class)
-        }
-        findViewById<View>(R.id.btn_list_follow).setOnClickListener {
-            player.closeVideo()
-            draggablePanel.closeToLeft()
-            viewManager.pushView(ListFollowFragment::class)
-        }
-        findViewById<View>(R.id.btn_close).setOnClickListener {
-            player.closeVideo()
-            draggablePanel.closeToLeft()
-            drawer_layout.closeDrawers()
-        }
-        findViewById<View>(R.id.btn_list_suggestions).setOnClickListener {
-            player.closeVideo()
-            draggablePanel.closeToLeft()
-            drawer_layout.closeDrawers()
-            viewManager.pushView(SuggestionsListFragment::class)
-        }
-        findViewById<View>(R.id.btn_list_channel).setOnClickListener {
-            player.closeVideo()
-            draggablePanel.closeToLeft()
-            drawer_layout.closeDrawers()
-            viewManager.pushView(ListChannelFragment::class)
-        }
-
-        val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
-        setSupportActionBar(toolbar)
-        showToolBar()
-        toolbar.setNavigationOnClickListener {
-            if (supportFragmentManager.backStackEntryCount == 0) {
-                drawer_layout!!.openDrawer(GravityCompat.START)
-            } else {
-                onBackPressed()
-            }
-            viewManager.hideKeyboard()
-        }
-
-        top_view_video = findViewById(R.id.top_view_video)
-        view_search_bar = findViewById(R.id.view_search_bar)
-        mn_action_search = findViewById(R.id.mn_action_search)
-        txt_key_word = findViewById(R.id.txt_key_word)
-        mn_action_search.setOnClickListener {
-            player.closeVideo()
-            draggablePanel.closeToLeft()
-//            viewManager.pushView(SearchHistoryFragment::class)
-            val searchFragment = HistoryKeyWordDialog()
-            searchFragment.listener = this
-            viewManager.showDialog(searchFragment)
-        }
-        thumbnail_video = findViewById(R.id.thumbnail_video)
-        draggablePanel = findViewById(R.id.draggable_panel)!!
-        txt_key_word.setOnClickListener {
-            val searchFragment = HistoryKeyWordDialog()
-            searchFragment.listener = this
-            searchFragment.keyword = txt_key_word.text.toString()
-            viewManager.showDialog(searchFragment)
-        }
-        initPlayView()
-//        loadFBNativeAd()
     }
+    lateinit var view_botton: TabLayout
+    override fun onComplete() {
+        app.mFileDownloadListener = this
+        viewManager.hideDialog()
+        app.mDownloadListener = null
 
-
-    fun loadThumbnail(videoId: String) {
-        ImageLoader.loadImage(thumbnail_video, Constants.DOMAIN + "/thumbnail_high/" + videoId, videoId)
+//        if (tabCurrent == R.id.bottom_history) {
+//            viewManager.pushViewToRoot(watched)
+//        }
+        loadFinish()
     }
+    fun loadFinish(){
 
-    fun initPlayView() {
-        player.listener = videoListPlayer
-        draggablePanel.setFragmentManager(supportFragmentManager);
-        draggablePanel.setTopFragment(player);
-        draggablePanel.setBottomFragment(videoListPlayer);
-        draggablePanel.setDraggableListener(object : DraggableListener {
-            override fun onMaximized() {
-                if (!playLocal) {
-                    if (videoPlay != null) {
-                        player.playNewVideo(videoPlay!!)
-                        videoListPlayer.loadNext(videoPlay!!)
-                        videoPlay = null
+        GBLog.info("MainActivity","getScreenHeight():"+getScreenHeight(),isDebugMode())
+        GBLog.info("MainActivity","getScreenWidth():"+ getScreenWidth(),isDebugMode())
+        GBLog.info("MainActivity","getStatusBarHeight():"+ getStatusBarHeight(),isDebugMode())
+        GBLog.info("MainActivity","view_botton_Height:"+ view_botton.height,isDebugMode())
+        app.screenHeight = getScreenHeight()
+        app.screenWidth = getScreenWidth()
+        app.statusBarHeight = getStatusBarHeight()
+        app.bottomHeight = view_botton.height
+        setUpDraggablePanel()
+        view_botton.addOnTabSelectedListener(object :TabLayout.OnTabSelectedListener{
+            override fun onTabReselected(p0: TabLayout.Tab?) {
+
+            }
+
+            override fun onTabUnselected(p0: TabLayout.Tab?) {
+
+            }
+
+            override fun onTabSelected(p0: TabLayout.Tab?) {
+                view_no_data.visibility = View.GONE
+
+                when(p0!!.position){
+                    0->{
+                        val fragment = viewManager.getViewCurrentByTag(home.fragmentName())
+                        if (fragment!= null){
+                            viewManager.addView(fragment)
+                        } else{
+                            viewManager.pushView(home)
+                        }
+
+                        tabCurrent = 0
                     }
-                } else {
-                    if (videoPlayDownLoad != null) {
-                        player.playVideoLocal(videoPlayDownLoad!!)
-                        videoListPlayer.loadVideoDownLoad(videoPlayDownLoad!!)
-                        videoPlayDownLoad = null
+                    1->{
+                        val fragment = viewManager.getViewCurrentByTag(top.fragmentName())
+                        if (fragment!= null){
+                            viewManager.addView(fragment)
+                        }else{
+                            viewManager.pushView(top)
+                        }
+
+                        tabCurrent = 1
                     }
-                }
+                    2->{
+                        val fragment = viewManager.getViewCurrentByTag(channel.fragmentName())
+                        if (fragment!= null){
+                            viewManager.addView(fragment)
+                        } else{
+                            viewManager.pushView(channel)
+                        }
 
-                drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-                if (app.myDevice .showDownLoad == 1){
-                    btn_list_download.visibility = View.VISIBLE
-                } else{
-                    btn_list_download.visibility = View.GONE
-                }
-            }
+                        tabCurrent = 2
+                    }
+                    3->{
+                        val fragment = viewManager.getViewCurrentByTag(offline.fragmentName())
+                        if (fragment!= null){
+                            viewManager.addView(fragment)
+                        } else{
+                            viewManager.pushView(offline)
+                        }
 
-            override fun onMinimized() {
-                drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-                if (app.myDevice .showDownLoad == 1){
-                    btn_list_download.visibility = View.VISIBLE
-                } else{
-                    btn_list_download.visibility = View.GONE
-                }
-            }
-
-            override fun onClosedToLeft() {
-                player.closeVideo()
-                draggablePanel.visibility = View.INVISIBLE
-                if (app.myDevice .showDownLoad == 1){
-                    btn_list_download.visibility = View.VISIBLE
-                } else{
-                    btn_list_download.visibility = View.GONE
-                }
-            }
-
-            override fun onClosedToRight() {
-                player.closeVideo()
-                draggablePanel.visibility = View.INVISIBLE
-                if (app.myDevice .showDownLoad == 1){
-                    btn_list_download.visibility = View.VISIBLE
-                } else{
-                    btn_list_download.visibility = View.GONE
+                        tabCurrent = 3
+                    }
+                    4->{
+                        val fragment = viewManager.getViewCurrentByTag(my.fragmentName())
+                        if (fragment!= null){
+                            viewManager.addView(fragment)
+                        } else{
+                            viewManager.pushView(my)
+                        }
+                        tabCurrent = 4
+                    }
                 }
             }
 
         })
-        draggablePanel.initializeView()
-    }
 
-    var videoPlay: VideoTable? = null
-    var videoPlayDownLoad: VideoDownLoad? = null
-    var playLocal = false
-    fun showPlayer(videoId: VideoTable, isShow: Boolean = true) {
-
-        playLocal = false
-        videoPlay = videoId
-        if (draggablePanel.visibility != View.VISIBLE) {
-            top_view_video.viewTreeObserver.addOnGlobalLayoutListener(this)
-            draggablePanel.visibility = View.INVISIBLE
-            loadThumbnail(videoId.videoID)
-        } else {
-            draggablePanel.maximize()
+        if (tabCurrent == -1||tabCurrent == 0) {
+            tabCurrent = 0
+            viewManager.pushView(home)
+        }
+        if (tabCurrent ==1) {
+            val fragment = viewManager.getViewCurrentByTag(top.fragmentName())
+            if (fragment!= null){
+                viewManager.addView(fragment)
+            }else{
+                viewManager.pushView(top)
+            }
 
         }
-    }
-
-    fun showPlayerDownLoad(videoId: VideoDownLoad, isShow: Boolean = true) {
-        playLocal = true
-        videoPlayDownLoad = videoId
-        if (draggablePanel.visibility != View.VISIBLE) {
-            top_view_video.viewTreeObserver.addOnGlobalLayoutListener(this)
-            draggablePanel.visibility = View.INVISIBLE
-//            loadThumbnail(videoId.videoID)
-            ImageLoader.loadImage(thumbnail_video, videoPlayDownLoad!!.thumbnails, videoPlayDownLoad!!.videoID)
-        } else {
-            draggablePanel.maximize()
+        if (tabCurrent ==2) {
+            val fragment = viewManager.getViewCurrentByTag(channel.fragmentName())
+            if (fragment!= null){
+                viewManager.addView(fragment)
+            } else{
+                viewManager.pushView(channel)
+            }
 
         }
+        if (tabCurrent ==3) {
+            val fragment = viewManager.getViewCurrentByTag(offline.fragmentName())
+            if (fragment!= null){
+                viewManager.addView(fragment)
+            } else{
+                viewManager.pushView(offline)
+            }
+
+        }
+        if (tabCurrent ==4) {
+            val fragment = viewManager.getViewCurrentByTag(my.fragmentName())
+            if (fragment!= null){
+                viewManager.addView(fragment)
+            } else{
+                viewManager.pushView(my)
+            }
+
+        }
+        btn_search.setOnClickListener {
+            val search = SearchDialog()
+            search.listener = this
+            viewManager.showDialog(search)
+        }
+        txt_keyword.setOnClickListener {
+            val search = SearchDialog()
+            search.listener = this
+            viewManager.showDialog(search)
+        }
+
+    }
+    override fun initView() {
+//        var setting = RealmTableDateUpdate.getObject()
+//        if (setting != null){
+//            if (!GBUtils.isEmpty(setting.dateDown)&&!GBUtils.isEmpty(setting.dateUp)){
+//                loadFinish()
+//                return
+//            }
+//        }
+        app.mDownloadListener = this
+        viewManager.showDialog(DownLoadDialog())
     }
 
-    fun updateHeightVideoPlay(height: Int) {
+    fun playVideo(video: RealmVideo){
+        draggablePanel.maximize()
+        if (app.videoCurrent == null){
+            app.videoCurrent = video
+            player.playVideo(app.videoCurrent!!)
+        } else {
+            if (!app.videoCurrent!!.videoID.equals(video.videoID,true)){
+                app.videoCurrent = video
+                player.playVideo(app.videoCurrent!!)
+            }
+        }
+    }
+    fun requestListVideo(video: RealmVideo){
+        draggablePanel.setBottomHeight(view_botton.height)
         if (draggablePanel.visibility != View.VISIBLE) {
             draggablePanel.visibility = View.VISIBLE
         }
-        draggablePanel.setTopViewHeight(height)
-        draggablePanel.initializeView()
-        draggablePanel.maximize()
+
+        playVideo(video)
 
     }
+    override fun loadData() {
 
+    }
+    fun updateHeightVideoPlay(height:Int){
+//        draggablePanel.setTopViewHeight(height)
+//        draggablePanel.requestLayout()
+//        draggablePanel.postInvalidate()
+//        draggablePanel.initializeView()
+    }
+
+    override fun initCommon() {
+        view_no_data = findViewById(R.id.view_no_data)
+        view_delete_action = findViewById(R.id.view_delete_action)!!
+        view_botton = findViewById(R.id.view_botton)
+        btn_back = findViewById(R.id.btn_back)
+        toolbar = findViewById(R.id.toolbar)
+        btn_search = findViewById(R.id.btn_search)
+        txt_keyword = findViewById(R.id.txt_keyword)
+        search_result_view = findViewById(R.id.search_result_view)
+        setSupportActionBar(toolbar)
+        title_bar = findViewById(R.id.title_bar)
+        top_view = findViewById(R.id.top_view)
+        if (getSupportActionBar() != null) {
+            getSupportActionBar()!!.setDisplayHomeAsUpEnabled(true)
+            getSupportActionBar()!!.setDisplayShowHomeEnabled(true)
+            getSupportActionBar()!!.setDisplayShowTitleEnabled(false)
+            toolBarViewMode()
+            btn_back.setOnClickListener {
+                onBackPressed()
+                viewManager.hideKeyboard()
+            }
+            toolbar.setNavigationIcon(null)
+            top_view.visibility = View.VISIBLE
+        }
+        draggablePanel = findViewById(R.id.draggable_panel)!!
+        findViewById<View>(R.id.btn_clear_search)!!.setOnClickListener{
+            val search = SearchDialog()
+            search.listener = this
+            search.isClear = true
+            viewManager.showDialog(search)
+        }
+
+    }
+    fun setUpDraggablePanel(){
+        draggablePanel.setFragmentManager(supportFragmentManager)
+        draggablePanel.setTopFragment(player)
+        draggablePanel.setBottomFragment(videoListPlayer)
+        draggablePanel.setDraggableListener(object : DraggableListener {
+            override fun onMaximized() {
+                GBLog.info("MainActivity","onMaximized:"+view_botton.height,isDebugMode())
+                view_botton.visibility = View.GONE
+                draggablePanel.setBottomHeight(view_botton.height)
+                val layoutParams = draggablePanel.getLayoutParams() as RelativeLayout.LayoutParams
+                layoutParams.bottomMargin =0
+                draggablePanel.requestLayout()
+                player.showController(true)
+            }
+
+            override fun onMinimized() {
+                GBLog.info("MainActivity","onMinimized:"+view_botton.height,isDebugMode())
+                view_botton.visibility = View.VISIBLE
+                draggablePanel.setBottomHeight(0)
+                val layoutParams = draggablePanel.getLayoutParams() as RelativeLayout.LayoutParams
+                layoutParams.bottomMargin =view_botton.height
+                draggablePanel.requestLayout()
+                player.showController(false)
+            }
+
+            override fun onClosedToLeft() {
+                GBLog.info("MainActivity","onClosedToLeft:"+view_botton.height,isDebugMode())
+                view_botton.visibility = View.VISIBLE
+                app.videoCurrent = null
+                player.releasePlayer()
+            }
+
+            override fun onClosedToRight() {
+                GBLog.info("MainActivity","onClosedToRight:"+view_botton.height,isDebugMode())
+                view_botton.visibility = View.VISIBLE
+                app.videoCurrent = null
+                player.releasePlayer()
+            }
+
+        })
+        draggablePanel.setTopViewHeight((app.screenHeight - app.statusBarHeight)/3)
+        draggablePanel.isClickToMaximizeEnabled = true
+        draggablePanel.initializeView()
+        player.mListVideoPlayFragment = videoListPlayer
+
+    }
+    override fun setThemeApp() {
+        setTheme(R.style.AppTheme)
+    }
+
+    @SuppressLint("WrongConstant")
     fun toolBarViewMode(toolBarView: ToolBarView = ToolBarView.AUTO_HIDE) {
-        val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         val params_toolbar = toolbar.getLayoutParams() as AppBarLayout.LayoutParams
 
         if (toolBarView == ToolBarView.AUTO_HIDE) {
-            findViewById<View>(R.id.toolbar).visibility = View.VISIBLE
+            toolbar.visibility = View.VISIBLE
             params_toolbar.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP or AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS)
             val view = findViewById<View>(R.id.fragment_view)
             val params = view.getLayoutParams() as CoordinatorLayout.LayoutParams
             params.setBehavior(AppBarLayout.ScrollingViewBehavior())
+            view.layoutParams = params
             view.requestLayout()
-
         } else if (toolBarView == ToolBarView.HIDE) {
             findViewById<View>(R.id.toolbar).visibility = View.GONE
         } else {
             findViewById<View>(R.id.toolbar).visibility = View.VISIBLE
-            params_toolbar.setScrollFlags(AppBarLayout.LayoutParams.WRAP_CONTENT)
+            params_toolbar.scrollFlags = AppBarLayout.LayoutParams.WRAP_CONTENT
             val view = findViewById<View>(R.id.fragment_view)
             val params = view.getLayoutParams() as CoordinatorLayout.LayoutParams
             params.setBehavior(AppBarLayout.ScrollingViewBehavior())
+            view.layoutParams = params
             view.requestLayout()
         }
         toolbar.layoutParams = params_toolbar
         toolbar.requestLayout()
     }
-
-    fun showToolBar() {
-        val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
-        if (getSupportActionBar() != null) {
-            if (supportFragmentManager.backStackEntryCount == 0) {
-                getSupportActionBar()!!.setDisplayHomeAsUpEnabled(true)
-                getSupportActionBar()!!.setDisplayShowHomeEnabled(true)
-                toolbar.setNavigationIcon(R.drawable.ico_menu)
-                drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
-            } else {
-                drawer_layout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-                getSupportActionBar()!!.setDisplayHomeAsUpEnabled(true)
-                getSupportActionBar()!!.setDisplayShowHomeEnabled(true)
-                toolbar.setNavigationIcon(R.drawable.ico_mn_back)
-            }
-
-
-        }
-
+    fun updateNoDataText(message:String){
+        view_no_data.visibility = View.VISIBLE
+        view_no_data.text = message
     }
-
-    fun loadKeyWord(keyword: String) {
-        txt_key_word.text = keyword
-    }
-
-    fun showToolBarViewType(toolBarViewType: ToolBarViewType = ToolBarViewType.NORMAL) {
-        if (toolBarViewType == ToolBarViewType.NORMAL) {
-            mn_action_search.visibility = View.VISIBLE
-            view_search_bar.visibility = View.GONE
-
-        } else if (toolBarViewType == ToolBarViewType.SEARCH_KEYWORD) {
-            mn_action_search.visibility = View.GONE
-            view_search_bar.visibility = View.VISIBLE
-        } else {
-            mn_action_search.visibility = View.VISIBLE
-            view_search_bar.visibility = View.GONE
-        }
-    }
-
-    override fun loadData() {
-    }
-
-    override fun initView() {
-        if (app.appSetting() != null) {
-            viewManager.addView(NewFragment::class)
-
-        } else {
-            presenter.register()
-        }
-    }
-
-    override fun initCommon() {
-
-    }
-
-    override fun onBackPressed() {
-        if (draggablePanel.visibility == View.VISIBLE && draggablePanel.isMaximized) {
-            draggablePanel.closeToLeft()
-        } else {
-            if (supportFragmentManager.backStackEntryCount == 0) {
-                if (drawer_layout!!.isDrawerOpen(GravityCompat.START)) {
-                    drawer_layout!!.closeDrawers()
-                    return
+    fun updateTitle(titleView: String) {
+        view_no_data.visibility = View.GONE
+        title_bar.text = ""
+        val fragment = viewManager.getViewCurrent()
+        txt_keyword.visibility = View.GONE
+        search_result_view.visibility = View.GONE
+        btn_search.visibility = View.VISIBLE
+        if (fragment!= null){
+            if (fragment.childFragmentManager.backStackEntryCount>0){
+                top_view.visibility = View.GONE
+                btn_back.visibility = View.VISIBLE
+                var result = fragment.childFragmentManager.findFragmentById(R.id.content_view)
+                if (result!= null){
+                    if (result is SearchResultFragment){
+                        txt_keyword.visibility = View.VISIBLE
+                        search_result_view.visibility = View.VISIBLE
+                        btn_search.visibility = View.GONE
+                        txt_keyword.text = result.currentKeyWord()
+                    } else{
+                        btn_search.visibility = View.VISIBLE
+                    }
+                } else {
+                    btn_search.visibility = View.VISIBLE
                 }
+            } else{
+                btn_back.visibility = View.GONE
+                top_view.visibility = View.VISIBLE
+                btn_search.visibility = View.VISIBLE
             }
-            super.onBackPressed()
-            viewManager.hideKeyboard()
+        }
+    }
+    fun updateTab(tabIndex:Int){
+        view_botton.getTabAt(tabIndex)!!.select()
+    }
+    override fun onBackPressed() {
+        view_no_data.visibility = View.GONE
+        if (draggablePanel.visibility == View.VISIBLE && draggablePanel.isMaximized) {
+            draggablePanel.minimize()
+        } else {
+            try {
+                val fragment = viewManager.getViewCurrent()
+                txt_keyword.visibility = View.GONE
+                search_result_view.visibility = View.GONE
+                btn_search.visibility = View.VISIBLE
+                if (fragment != null){
+                    if (fragment.childFragmentManager.backStackEntryCount>0){
+                        fragment.childFragmentManager.popBackStackImmediate()
+                        if (fragment.childFragmentManager.backStackEntryCount==0) {
+                            btn_back.visibility = View.GONE
+                            txt_keyword.visibility = View.GONE
+                            search_result_view.visibility = View.GONE
+                            top_view.visibility = View.VISIBLE
+                        } else{
+                            btn_back.visibility = View.VISIBLE
+                            var result = fragment.childFragmentManager.findFragmentById(R.id.content_view)
+                            if (result!= null){
+
+                                if (result is SearchResultFragment){
+                                    search_result_view.visibility = View.VISIBLE
+                                    txt_keyword.visibility = View.VISIBLE
+                                    txt_keyword.text = result.currentKeyWord()
+                                    btn_search.visibility = View.GONE
+                                } else{
+                                    txt_keyword.visibility = View.GONE
+                                    search_result_view.visibility = View.GONE
+                                }
+                            } else {
+                                txt_keyword.visibility = View.GONE
+                                search_result_view.visibility = View.GONE
+                            }
+                        }
+                        return
+                    }
+                }
+                if (fragment is HomeFragment){
+                    if (supportFragmentManager.backStackEntryCount <=1){
+                        finish()
+                        return
+                    }
+                }
+                viewManager.hideKeyboard()
+                supportFragmentManager.popBackStackImmediate()
+            }catch (e:Exception){
+                finish()
+            }
+
+
         }
     }
 
-    override fun setThemeApp() {
-        setTheme(R.style.AppTheme)
-    }
-
-    fun addBannerAds() {}
-    fun loadBannerAds() {}
-    fun requestStoragePermissions() {
+    fun requestStoragePermissions(videoDownLoad:String) {
+        this.videoDownLoad = videoDownLoad
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
             val lPermissions =
                 arrayOf<String>(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -403,9 +516,9 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, View
                     //show popup require Permissions
                     val dialogContent = GBDialogContentEntity()
                     dialogContent.layoutId = R.layout.dialog_require_permissions
-                    dialogContent.listButton.put(R.id.btn_dialog_left, "No")
-                    dialogContent.listButton.put(R.id.btn_dialog_right, "Yes")
-                    dialogContent.message = "please allow GBKids have Permissions on Storage"
+                    dialogContent.listButton.put(R.id.btn_dialog_left, getString(R.string.lb_no))
+                    dialogContent.listButton.put(R.id.btn_dialog_right, getString(R.string.lb_yes))
+                    dialogContent.message = getString(R.string.msg_permission)
                     dialogContent.buttonClick = object : View.OnClickListener {
                         override fun onClick(v: View?) {
                             if (v != null) {
@@ -440,30 +553,8 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, View
         } else {
             downLoadVideo()
         }
-    }
 
-    fun downLoadVideo() {
-        if (videoTableDownload != null) {
-            var data =
-                GBDataBase.getObject(VideoDownLoad::class.java, "videoID=?", *arrayOf(videoTableDownload!!.videoID))
-            if (data == null) {
-                data = VideoDownLoad()
-                data.videoID = videoTableDownload!!.videoID
-                data.channelID = videoTableDownload!!.channelID
-                data.title = videoTableDownload!!.title
-                data.channelTitle = videoTableDownload!!.channelTitle
-                data.thumbnails = videoTableDownload!!.thumbnails
-                data.save()
-                app.downloadVideo(videoTableDownload!!.videoID)
-            }
-        }
     }
-
-    fun checkDownload(videoTableDownload: VideoTable) {
-        this.videoTableDownload = videoTableDownload
-        requestStoragePermissions()
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (grantResults.size != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             if (requestCode == RequestCode.WRITE_EXTERNAL_STORAGE.value) {
@@ -475,9 +566,9 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, View
                 //show popup require Permissions
                 val dialogContent = GBDialogContentEntity()
                 dialogContent.layoutId = R.layout.dialog_require_permissions
-                dialogContent.listButton.put(R.id.btn_dialog_left, "No")
-                dialogContent.listButton.put(R.id.btn_dialog_right, "Yes")
-                dialogContent.message = "please allow GBKids have Permissions on Storage"
+                dialogContent.listButton.put(R.id.btn_dialog_left, getString(R.string.lb_no))
+                dialogContent.listButton.put(R.id.btn_dialog_right, getString(R.string.lb_yes))
+                dialogContent.message = getString(R.string.msg_permission)
                 dialogContent.buttonClick = object : View.OnClickListener {
                     override fun onClick(v: View?) {
                         if (v != null) {
@@ -494,7 +585,7 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, View
                                     this@MainActivity,
                                     lPermissions,
                                     RequestCode.WRITE_EXTERNAL_STORAGE.value
-                                );
+                                )
                             }
                         }
                     }
@@ -503,5 +594,40 @@ class MainActivity : ActivityBase(), MainPresenter.MainMvp, SearchListener, View
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+    fun downLoadVideo() {
+        if (!GBUtils.isEmpty(videoDownLoad)) {
+            var data =
+                RealmVideo.getObjectDownLoad(videoDownLoad)
+            if (data != null) {
+                app.downloadVideo(videoDownLoad)
+                RealmVideo.updateDownload(videoDownLoad)
+                videoDownLoad = ""
+            }
+        }
+    }
+    fun onIgnoreVideo(video: RealmVideo,videoPlay:RealmVideo) {
+        view_delete_action.visibility = View.VISIBLE
+        val txt_comment = findViewById<EditText>(R.id.txt_comment)
+        findViewById<View>(R.id.btn_cancle)!!.setOnClickListener {
+            view_delete_action.visibility = View.GONE
+            viewManager.hideKeyboard()
+        }
+        findViewById<View>(R.id.btn_delete)!!.setOnClickListener {
+            view_delete_action.visibility = View.GONE
+            RealmVideo.ignoreVideo(video.videoID)
+            requestListVideo(videoPlay)
+            app.report(video.videoID,txt_comment.text.toString(),0)
+            viewManager.hideKeyboard()
+        }
+
+
+    }
+    fun onNoInternet(){
+        draggablePanel.closeToLeft()
+        updateTab(3)
+    }
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
     }
 }

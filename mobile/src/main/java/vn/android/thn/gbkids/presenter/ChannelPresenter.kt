@@ -1,72 +1,90 @@
 package vn.android.thn.gbkids.presenter
 
-import android.support.v4.app.FragmentActivity
-import vn.android.thn.gbkids.constants.ResponseCode
-import vn.android.thn.gbkids.model.api.GBRequestName
-import vn.android.thn.gbkids.model.api.GBTubeRequestCallBack
-import vn.android.thn.gbkids.model.api.request.GBTubeRequest
-import vn.android.thn.gbkids.model.api.response.ChannelListResponse
-import vn.android.thn.gbkids.model.api.response.GBTubeResponse
-import vn.android.thn.gbkids.model.api.response.LogoChannelResponse
-import vn.android.thn.gbkids.model.api.response.NewResponse
-import vn.android.thn.gbkids.model.db.FollowTable
-import vn.android.thn.gbkids.model.db.VideoTable
-import vn.android.thn.gbkids.model.entity.ChannelLogoEntity
-import vn.android.thn.library.net.GBRequestError
+import android.os.AsyncTask
+import androidx.fragment.app.FragmentActivity
+import io.realm.Realm
+import io.realm.Sort
 
+import vn.android.thn.commons.listener.LoadMoreListener
+import vn.android.thn.commons.realm.RealmVideo
+import vn.android.thn.gbkids.model.ChannelEntity
+import vn.android.thn.gbkids.views.adapter.ChannelAdapter
+import vn.android.thn.gbkids.views.fragment.ChannelFragment
 
-//
-// Created by NghiaTH on 3/20/19.
-// Copyright (c) 2019
-
-class ChannelPresenter(mvp: ChannelMvp, mActivity: FragmentActivity?) :
-    PresenterBase<ChannelPresenter.ChannelMvp>(mvp, mActivity) {
-
-    fun loadData(offset:Int = 0,isShowPopup: Boolean = true){
-
-        if (isShowPopup) {
-            showLoading()
-        }
-        val api = GBTubeRequest(GBRequestName.CHANNEL_LIST,mActivity!!)
-        api.addHeader("offset",offset.toString())
-        api.get().execute(object : GBTubeRequestCallBack {
-            override fun onRequestError(errorRequest: GBRequestError, request: GBTubeRequest) {
-                if (isShowPopup) {
-                    hideLoading()
-                }
-            }
-
-            override fun onResponse(httpCode: Int, response: GBTubeResponse, request: GBTubeRequest) {
-
-
-                val result = response.toResponse(ChannelListResponse::class)!!
-                if (result!!.error.errorCode == ResponseCode.NO_ERROR){
-                    mMvp!!.onChannelList(result.data,result.offset)
-                    if (isShowPopup) {
-                        hideLoading()
-                    }
-                } else if (result!!.error.errorCode == ResponseCode.TOKEN_EXPIRED){
-                    refreshToken(request.mRequestName)
-                } else{
-                    if (isShowPopup) {
-                        hideLoading()
-                    }
-                }
-
-            }
-        })
-
+class ChannelPresenter(view: ChannelFragment, mActivity: FragmentActivity?) :
+    PresenterBase<ChannelFragment>(view, mActivity) , LoadMoreListener {
+    var adapter: ChannelAdapter
+    var list = ArrayList<ChannelEntity>()
+    init {
+        adapter = ChannelAdapter(mActivity!!,list)
+        adapter.loadMoreListener = this
+        adapter.listener = view
     }
 
-    override fun onRefreshComplete(requestName: String) {
-        if (requestName.equals(GBRequestName.CHANNEL_LIST,true)){
-            loadData(0,true)
-        } else {
-            hideLoading()
+    override fun initView() {
+        if (view!= null) {
+            view!!.onListVideo(adapter)
         }
-
     }
-    interface ChannelMvp : MVPBase {
-        fun onChannelList(listVideo: MutableList<FollowTable>,offset:Int = -1)
+
+    override fun onLoadMore() {
+        loadNew(list.size)
+    }
+    fun loadNew(offset:Int = 0){
+        LoadNextListTask().execute(offset)
+    }
+    inner class LoadNextListTask : AsyncTask<Int, String, Int>() {
+        override fun doInBackground(vararg params: Int?): Int {
+            if (view!= null) {
+                var offset = params[0]!!
+                if (offset ==0){
+                    list.clear()
+                    adapter.isLoadMore = false
+                }
+                realm = Realm.getDefaultInstance()
+                var listNew:List<RealmVideo> = realm.where(RealmVideo::class.java)
+                    .equalTo("isDelete",0.toInt())
+                    .distinct("channelId")
+                    .sort("viewCount",Sort.DESCENDING)
+                    .findAll()
+                if (listNew.size>(MAX_ROW+offset)){
+                    listNew = listNew.subList(offset,MAX_ROW+offset)
+                    for (video in listNew){
+                        var channel = ChannelEntity()
+                        channel.channelId = video.channelId
+                        channel.channelTitle = video.channelTitle
+                        channel.channelImage  = video.channelImage
+                        list.add(channel)
+                    }
+                    adapter.isLoadMore = listNew.size >= MAX_ROW
+                } else {
+                    for (video in listNew){
+                        var channel = ChannelEntity()
+                        channel.channelId = video.channelId
+                        channel.channelTitle = video.channelTitle
+                        channel.channelImage  = video.channelImage
+                        list.add(channel)
+                    }
+                    adapter.isLoadMore = false
+                }
+                //Select().from(VideoTable::class.java).where("isDelete=0").groupBy("channelId").orderBy("viewCount DESC").limit(MAX_ROW).offset(offset).execute()
+                realm.close()
+                return offset
+            }
+            return 0
+        }
+        override fun onPreExecute() {
+            if (view!= null) {
+                if (list.size ==0)
+                showLoading()
+            }
+        }
+        override fun onPostExecute(result: Int) {
+            if (view!= null) {
+                view!!.onListVideo(adapter)
+                if (result ==0)
+                hideLoading()
+            }
+        }
     }
 }

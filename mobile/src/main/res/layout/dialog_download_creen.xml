@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             android:id="@+id/main_player_view"
+             android:layout_width="match_parent"
+             android:background="#ffffff"
+             android:layout_height="match_parent">
+    <ImageView android:layout_width="50dp"
+               android:layout_height="50dp"
+               android:src="@drawable/ico_play"
+               android:adjustViewBounds="true"
+               android:layout_gravity="center"/>
+    <ProgressBar
+            android:id="@+id/stream_loading"
+            style="?android:attr/progressBarStyleLargeInverse"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:background="@color/transparent"
+            android:indeterminateTint="@color/colorAccent"/>
+</FrameLayout>
+

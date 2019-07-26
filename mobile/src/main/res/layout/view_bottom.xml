@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.tabs.TabLayout
+        android:id="@+id/view_botton"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:tabIndicatorGravity="top"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="bottom">
+
+    <com.google.android.material.tabs.TabItem
+            android:id="@+id/tab_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:icon="@drawable/button_1"/>
+
+    <com.google.android.material.tabs.TabItem
+            android:id="@+id/tab_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:icon="@drawable/button_2"/>
+
+    <com.google.android.material.tabs.TabItem
+            android:id="@+id/tab_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:icon="@drawable/button_3"/>
+    <com.google.android.material.tabs.TabItem
+            android:id="@+id/tab_4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:icon="@drawable/button_4"/>
+    <com.google.android.material.tabs.TabItem
+            android:id="@+id/tab_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+    android:icon="@drawable/button_5"/>
+</com.google.android.material.tabs.TabLayout>
