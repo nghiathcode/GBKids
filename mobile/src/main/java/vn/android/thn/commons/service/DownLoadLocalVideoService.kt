@@ -56,7 +56,7 @@ class DownLoadLocalVideoService : IntentService("DownLoadLocalVideoService") {
                             videoFileName = vMeta.videoId+"."+listUrl.get(22)!!.format.ext
                             if (!GBUtils.isEmpty(urlVideo) && !GBUtils.isEmpty(videoFileName)) {
                                 if (obj!= null) {
-                                    downloadThumbnail(obj!!.imageLarger, vMeta.title, vMeta.videoId, vMeta.videoId,urlVideo,videoFileName)
+                                    downloadThumbnail(obj!!.imageLarger, obj.title, vMeta.videoId, vMeta.videoId,urlVideo,videoFileName)
                                 }
                             }
                             return
@@ -83,7 +83,7 @@ class DownLoadLocalVideoService : IntentService("DownLoadLocalVideoService") {
                     }
                     if (!GBUtils.isEmpty(urlVideo) && !GBUtils.isEmpty(videoFileName)) {
                         if (obj!= null) {
-                            downloadThumbnail(obj!!.imageLarger, vMeta.title, vMeta.videoId, vMeta.videoId,urlVideo,videoFileName)
+                            downloadThumbnail(obj!!.imageLarger, obj.title, vMeta.videoId, vMeta.videoId,urlVideo,videoFileName)
                         }
                     }
                 }

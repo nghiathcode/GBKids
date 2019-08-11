@@ -13,6 +13,7 @@ import android.os.Build
 import android.provider.Settings
 import android.webkit.WebView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ExtractorMediaSource
@@ -63,7 +64,12 @@ class App : Application() {
     var isConnectInternet = true
     var downLoadAllow = 0
     fun heightRowLarger(): Int {
-        return (screenHeight - statusBarHeight - bottomHeight) / 2
+        var height = (screenHeight - statusBarHeight - bottomHeight) / 2
+        if (height > 720){
+            return 720
+        } else {
+            return height
+        }
     }
 
     fun heightRowSmall(): Int {
@@ -128,7 +134,11 @@ class App : Application() {
     fun downloadVideo(videoId: String) {
         val intentService = Intent(this, DownLoadLocalVideoService::class.java)
         intentService.putExtra("videoId", videoId)
-        startService(intentService)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ContextCompat.startForegroundService(this,intentService)
+        } else {
+            startService(intentService)
+        }
     }
 
     fun loadFirstStream(videoID: String) {

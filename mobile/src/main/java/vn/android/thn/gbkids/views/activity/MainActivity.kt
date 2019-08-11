@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.StrictMode
 import android.view.View
 import android.widget.*
@@ -600,9 +601,11 @@ class MainActivity : ActivityBase() , DownloadListener , SearchDialog.SearchList
             var data =
                 RealmVideo.getObjectDownLoad(videoDownLoad)
             if (data != null) {
-                app.downloadVideo(videoDownLoad)
-                RealmVideo.updateDownload(videoDownLoad)
-                videoDownLoad = ""
+                runOnUiThread {
+                    app.downloadVideo(videoDownLoad)
+                    RealmVideo.updateDownload(videoDownLoad)
+                    videoDownLoad = ""
+                }
             }
         }
     }
