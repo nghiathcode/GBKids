@@ -1,5 +1,6 @@
 package vn.android.thn.commons
 
+import android.Manifest
 import android.app.Application
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -7,6 +8,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
@@ -36,6 +38,7 @@ import vn.android.thn.commons.response.GBTubeResponse
 import vn.android.thn.commons.response.VideoResponse
 import vn.android.thn.commons.service.*
 import vn.android.thn.gbkids.BuildConfig
+import vn.android.thn.gbkids.R
 import vn.android.thn.gbkids.constants.Constants
 import vn.android.thn.gbkids.model.SettingEntity
 import vn.android.thn.gbkids.model.api.GBVideoRequestCallBack
@@ -65,8 +68,9 @@ class App : Application() {
     var downLoadAllow = 0
     fun heightRowLarger(): Int {
         var height = (screenHeight - statusBarHeight - bottomHeight) / 2
+        GBLog.info("heightRowLarger:",height.toString(),isDebugMode())
         if (height > 720){
-            return 720
+            return 720 + this.resources.getDimensionPixelSize(R.dimen.view_60)
         } else {
             return height
         }
@@ -111,8 +115,26 @@ class App : Application() {
     }
 
     fun scanFileDowLoad() {
-        var intentServer = Intent(this, ScanFileDownLoadService::class.java)
-        startService(intentServer)
+        try {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+                val lPermissions =
+                    arrayOf<String>(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+                val permissionCheckRead =
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                val permissionCheck =
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                if (permissionCheck == PackageManager.PERMISSION_GRANTED && permissionCheckRead == PackageManager.PERMISSION_GRANTED) {
+                    var intentServer = Intent(this, ScanFileDownLoadService::class.java)
+                    startService(intentServer)
+                }
+            } else {
+                var intentServer = Intent(this, ScanFileDownLoadService::class.java)
+                startService(intentServer)
+            }
+        } catch (e:Exception){
+
+        }
+
     }
 
     fun initApp() {
@@ -134,11 +156,12 @@ class App : Application() {
     fun downloadVideo(videoId: String) {
         val intentService = Intent(this, DownLoadLocalVideoService::class.java)
         intentService.putExtra("videoId", videoId)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ContextCompat.startForegroundService(this,intentService)
-        } else {
-            startService(intentService)
-        }
+        startService(intentService)
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            ContextCompat.startForegroundService(this,intentService)
+//        } else {
+//            startService(intentService)
+//        }
     }
 
     fun loadFirstStream(videoID: String) {

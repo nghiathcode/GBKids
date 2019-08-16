@@ -7,32 +7,38 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         card_view:cardCornerRadius="@dimen/cardview_default_radius"
-        card_view:cardElevation="@dimen/cardview_default_elevation">
-    <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
 
-        <ImageView
-                android:id="@+id/img_thumbnail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/bg_white"
-                android:layout_above="@+id/view_info"
-                android:scaleType="fitXY"
-        android:adjustViewBounds="true"/>
-        <vn.android.thn.gbkids.views.view.ProcessPlayView
-                android:id="@+id/processPlay"
-                android:layout_width="match_parent"
-                android:layout_height="3dp"
-                android:background="#80ffffff"
-        android:layout_alignBottom="@+id/img_thumbnail"/>
-        <ImageView
-                android:layout_width="50dp"
-                android:layout_margin="@dimen/margin_20"
-                android:layout_height="50dp"
-                android:adjustViewBounds="true"
-                android:layout_alignParentRight="true"
-                android:src="@drawable/ic_logo_round"/>
+        card_view:cardElevation="@dimen/cardview_default_elevation">
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#000000"
+            android:orientation="vertical">
+        <FrameLayout android:layout_width="match_parent"
+                     android:layout_height="wrap_content">
+            <ImageView
+                    android:id="@+id/img_thumbnail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/bg_white"
+                    android:layout_above="@+id/view_info"
+                    android:scaleType="fitXY"
+                    android:minHeight="150dp"
+                    android:adjustViewBounds="true"/>
+            <ImageView
+                    android:layout_width="50dp"
+                    android:layout_margin="@dimen/margin_20"
+                    android:layout_height="50dp"
+                    android:adjustViewBounds="true"
+                    android:layout_gravity="right"
+                    android:src="@drawable/ic_logo_round"/>
+            <vn.android.thn.gbkids.views.view.ProcessPlayView
+                    android:id="@+id/processPlay"
+                    android:layout_width="match_parent"
+                    android:layout_gravity="bottom"
+                    android:layout_height="3dp"
+                    android:background="#80ffffff"/>
+        </FrameLayout>
         <RelativeLayout
                 android:id="@+id/view_info"
                 android:layout_width="match_parent"
@@ -82,7 +88,5 @@
                         android:textColor="@color/text_gray"/>
             </LinearLayout>
         </RelativeLayout>
-
-
-    </RelativeLayout>
+    </LinearLayout>
 </androidx.cardview.widget.CardView>

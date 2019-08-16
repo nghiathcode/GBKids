@@ -48,4 +48,7 @@
     <dimen name="view_120">120dp</dimen>
     <dimen name="view_150">150dp</dimen>
     <dimen name="view_90">90dp</dimen>
+    <dimen name="view_50">50dp</dimen>
+    <dimen name="view_60">60dp</dimen>
+    <dimen name="height_lager">290dp</dimen>
 </resources>

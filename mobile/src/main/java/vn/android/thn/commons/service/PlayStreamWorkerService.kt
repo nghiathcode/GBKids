@@ -32,6 +32,10 @@ class PlayStreamWorkerService() : IntentService("PlayStreamWorkerService") {
     override fun onHandleIntent(intent: Intent?) {
         if (intent != null) {
             stream_video = ""
+            if (PlayerFragment.dataSourceMap.size > 1000){
+                PlayerFragment.dataSourceMap.clear()
+                PlayerFragment.linkSourceMap.clear()
+            }
             var videoId = intent!!.getStringExtra("videoId")
             if (PlayerFragment.dataSourceMap.containsKey(GBUtils.dateNow("yyyyMMdd")+videoId)){
                 if (PlayerFragment.dataSourceMap.get(GBUtils.dateNow("yyyyMMdd")+videoId)!=null){

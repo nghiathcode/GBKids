@@ -305,10 +305,13 @@ class PlayerFragment:Fragment(),PlaybackPreparer , YoutubeStreamListener,FullScr
         }
 
         shouldAutoPlay = true
+        try {
+            var intentServer = Intent(activity, YoutubeStreamService::class.java)
+            intentServer.putExtra("videoId", video.videoID)
+            activity!!.startService(intentServer)
+        }catch (e:Exception){
 
-        var intentServer = Intent(activity, YoutubeStreamService::class.java)
-        intentServer.putExtra("videoId", video.videoID)
-        activity!!.startService(intentServer)
+        }
     }
     fun initLoading(video:RealmVideo){
         video_error.visibility = View.GONE

@@ -105,24 +105,30 @@ class ListVideoPlayFragment : BaseFragment(), ListItemListener {
         if (mListView.adapter== null){
             mListView.adapter = adapter
         } else{
-            mListView.adapter!!.notifyDataSetChanged()
+            if(presenter!!.list.size >1) {
+                this.mListView.recycledViewPool.clear()
+                mListView.adapter!!.notifyDataSetChanged()
+            }
         }
         if (mPlayerFragment!= null) {
             mPlayerFragment!!.listVideo = presenter!!.list
             mPlayerFragment!!.currentItem = 0
             mPlayerFragment!!.loadList()
         }
+        if (presenter!!.list.size<=35){
+            presenter!!.adapter.loadAD()
+        }
     }
     fun loadNewList(){
         presenter!!.list.clear()
         if (mListView.adapter!= null) {
+            this.mListView.recycledViewPool.clear()
             mListView.adapter!!.notifyDataSetChanged()
         }
-        if (presenter!!.list.size<=30){
-            presenter!!.adapter.loadAD()
-        }
+
         currentItem = 0
         presenter!!.loadListVideo()
+
     }
     override fun layoutFileResourceContent(): Int {
         return R.layout.fragment_list_video_play
@@ -146,7 +152,6 @@ class ListVideoPlayFragment : BaseFragment(), ListItemListener {
         data_loading.visibility = View.GONE
     }
     fun download(videoId:String){
-
         if (activity is MainActivity){
             (activity as MainActivity).requestStoragePermissions(videoId)
         }

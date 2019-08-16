@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GBKids</string>
+    <string name="app_name">TOP Kids</string>
     <string name="video_error">Video Đã bị xoá!</string>
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
     <string name="fcm_message">FCM Message</string>
@@ -19,8 +19,9 @@
     <string name="lb_cancle">Huỷ</string>
     <string name="lb_no">Huỷ</string>
     <string name="msg_retore">Bạn có muốn khôi phục video này không?</string>
-    <string name="msg_permission">vui lòng cho phép GBKids có quyền truy cập vào Bộ lưu trữ</string>
-    <string name="hin_search">Tìm kiếm trên GBKids</string>
+    <string name="msg_permission">vui lòng cho phép TOP Kids có quyền truy cập vào Bộ lưu trữ</string>
+    <string name="hin_search">Tìm kiếm trên TOP Kids</string>
     <string name="hin_comment">Ghi chú</string>
     <string name="msg_complete_download">Video %1s tải về Thành Công.</string>
+    <string name="Native_ad">ca-app-pub-2223782486826233/1484125452</string>
 </resources>

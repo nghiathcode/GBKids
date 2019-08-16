@@ -601,11 +601,9 @@ class MainActivity : ActivityBase() , DownloadListener , SearchDialog.SearchList
             var data =
                 RealmVideo.getObjectDownLoad(videoDownLoad)
             if (data != null) {
-                runOnUiThread {
-                    app.downloadVideo(videoDownLoad)
-                    RealmVideo.updateDownload(videoDownLoad)
-                    videoDownLoad = ""
-                }
+                app.downloadVideo(videoDownLoad)
+                RealmVideo.updateDownload(videoDownLoad)
+                videoDownLoad = ""
             }
         }
     }

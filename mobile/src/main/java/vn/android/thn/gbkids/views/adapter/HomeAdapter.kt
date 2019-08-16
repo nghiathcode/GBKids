@@ -84,10 +84,10 @@ class HomeAdapter(private val mContext: Context, var list: ArrayList<RealmVideo>
                     listener!!.onItemClick(list.get(layoutPosition),layoutPosition)
                 }
             }
-            var layoutParams =  itemView.layoutParams
-            layoutParams.height = App.getInstance().heightRowLarger()
-            itemView.layoutParams = layoutParams
-            itemView.requestLayout()
+//            var layoutParams =  itemView.layoutParams
+//            layoutParams.height = App.getInstance().heightRowLarger()
+//            itemView.layoutParams = layoutParams
+//            itemView.requestLayout()
         }
         fun bindData(obj:RealmVideo){
             txt_name.text = obj.title

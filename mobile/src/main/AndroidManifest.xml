@@ -21,7 +21,8 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:name="vn.android.thn.commons.App"
-            android:theme="@style/AppTheme.Launcher">
+            android:theme="@style/AppTheme.Launcher"
+            android:usesCleartextTraffic="true">
 
         <provider
                 android:authorities="vn.android.thn.gbkids.fileprovider"

@@ -4,15 +4,8 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_10"
         android:background="#FFF"
         android:orientation="vertical">
-    <FrameLayout
-            android:id="@+id/ad_card_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-    </FrameLayout>
     <RelativeLayout
             android:id="@+id/row_title"
             android:layout_width="match_parent"
@@ -60,18 +53,18 @@
         <ImageView
                 android:id="@+id/btn_like"
                 android:layout_width="0dp"
-                   android:layout_weight="1"
-                   android:layout_height="35dp"
-                   android:adjustViewBounds="true"
-                   android:src="@drawable/ico_like"/>
+                android:layout_weight="1"
+                android:layout_height="35dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/ico_like"/>
         <ImageView
                 android:id="@+id/btn_download"
                 android:layout_width="0dp"
-                   android:layout_weight="1"
-                   android:adjustViewBounds="true"
-                   android:layout_height="35dp"
+                android:layout_weight="1"
+                android:adjustViewBounds="true"
+                android:layout_height="35dp"
                 android:visibility="visible"
-                   android:src="@drawable/ico_download"/>
+                android:src="@drawable/ico_download"/>
         <ImageView
                 android:id="@+id/btn_ignore"
                 android:layout_width="0dp"
@@ -122,6 +115,12 @@
                 android:src="@drawable/ico_un_following"
                 android:layout_alignParentRight="true"/>
     </RelativeLayout>
+    <vn.android.thn.commons.view.AdModNativeView
+            android:id="@+id/ad_native_view"
+            android:layout_width="match_parent"
+
+            android:layout_height="wrap_content">
+    </vn.android.thn.commons.view.AdModNativeView>
     <RelativeLayout
             android:background="@drawable/bg_rectange_white_border_botton"
             android:id="@+id/row_description"

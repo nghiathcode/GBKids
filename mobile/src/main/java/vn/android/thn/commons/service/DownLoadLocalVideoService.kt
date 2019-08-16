@@ -1,10 +1,7 @@
 package vn.android.thn.commons.service
 
-import android.app.DownloadManager
 import android.app.IntentService
-import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.SparseArray
 import at.huber.youtubeExtractor.VideoMeta
@@ -17,7 +14,6 @@ import vn.android.thn.gbkids.views.activity.ActivityBase
 import vn.android.thn.library.utils.GBLog
 import vn.android.thn.library.utils.GBUtils
 import java.io.File
-import java.net.URI
 import java.net.URL
 
 class DownLoadLocalVideoService : IntentService("DownLoadLocalVideoService") {
@@ -92,30 +88,33 @@ class DownLoadLocalVideoService : IntentService("DownLoadLocalVideoService") {
     }
 
     private fun downloadFromUrl(youtubeDlUrl: String, downloadTitle: String,folder:String,fileName: String) {
-        val directory = App.getInstance().filesDir
-        val directoryDownLoad =File(directory.path+"/"+folder)
-        if (!directoryDownLoad.exists()){
-            directoryDownLoad.mkdir()
-        }
-        //
-        try {
-            val urlRequest = URL(youtubeDlUrl)
-            val urlConnection = urlRequest.openConnection()
-            var input  = urlConnection.getInputStream()
-            File(directory.path+"/"+folder+"/"+"video_"+fileName).outputStream().use { input.copyTo(it) }
-            val sender = Intent()
-            val bundle = Bundle()
-            sender.action = Constants.DOWNLOAD_VIDEO
-            bundle.putString("videoId", videoId)
-            sender.putExtras(bundle)
-            sendBroadcast(sender)
+        Thread({
+            kotlin.run {
+                val directory = App.getInstance().filesDir
+                val directoryDownLoad =File(directory.path+"/"+folder)
+                if (!directoryDownLoad.exists()){
+                    directoryDownLoad.mkdir()
+                }
+                //
+                try {
+                    val urlRequest = URL(youtubeDlUrl)
+                    val urlConnection = urlRequest.openConnection()
+                    var input  = urlConnection.getInputStream()
+                    File(directory.path+"/"+folder+"/"+"video_"+fileName).outputStream().use { input.copyTo(it) }
+                    val sender = Intent()
+                    val bundle = Bundle()
+                    sender.action = Constants.DOWNLOAD_VIDEO
+                    bundle.putString("videoId", videoId)
+                    sender.putExtras(bundle)
+                    sendBroadcast(sender)
 
 
-        }catch (e:Exception){
-            directoryDownLoad.delete()
-            GBLog.info("DownLoadLocalVideoService", "error download Video", App.getInstance()!!.isDebugMode())
-        }
-
+                }catch (e:Exception){
+                    directoryDownLoad.delete()
+                    GBLog.info("DownLoadLocalVideoService", "error download Video", App.getInstance()!!.isDebugMode())
+                }
+            }
+        }).start()
         //
 //        val uri = Uri.parse(youtubeDlUrl)
 //        val request = DownloadManager.Request(uri)
@@ -143,12 +142,6 @@ class DownLoadLocalVideoService : IntentService("DownLoadLocalVideoService") {
             val urlRequest = URL(url)
             val urlConnection = urlRequest.openConnection()
             var input  = urlConnection.getInputStream()
-//            val pathRoot = App.getInstance().getExternalFilesDir(null)
-//            val rootFolder =File(pathRoot.path+"/"+folder)
-//            if (!rootFolder.exists()){
-//                rootFolder.mkdir()
-//            }
-
             val directory = App.getInstance().filesDir
             val directoryDownLoad =File(directory.path+"/"+folder)
             if (!directoryDownLoad.exists()){

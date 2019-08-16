@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GBKids</string>
+    <string name="app_name">TOP Kids</string>
     <string name="video_error">Video is Delete!</string>
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
     <string name="fcm_message">FCM Message</string>
@@ -17,10 +17,11 @@
     <string name="lb_yes">Yes</string>
     <string name="lb_no">No</string>
     <string name="msg_retore">Do you want to restore this video?</string>
-    <string name="msg_permission">Please allow GBKids have Permissions access on Storage</string>
-    <string name="hin_search">Search keyword on GBKids</string>
+    <string name="msg_permission">Please allow TOP Kids have Permissions access on Storage</string>
+    <string name="hin_search">Search keyword on TOP Kids</string>
     <string name="lb_delete">Delete</string>
     <string name="lb_cancle">Cancle</string>
     <string name="hin_comment">Comment</string>
     <string name="msg_complete_download">Video %1s Download Complete.</string>
+    <string name="Native_ad">ca-app-pub-2223782486826233/1484125452</string>
 </resources>

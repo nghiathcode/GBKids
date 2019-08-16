@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFF"
+        android:orientation="vertical">
+    <vn.android.thn.commons.view.AdModNativeView
+            android:id="@+id/ad_native_view"
+            android:layout_width="match_parent"
+
+            android:layout_height="wrap_content">
+    </vn.android.thn.commons.view.AdModNativeView>
+</LinearLayout>

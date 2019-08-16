@@ -30,6 +30,8 @@ import vn.android.thn.gbkids.views.view.ProcessPlayView
 import vn.android.thn.library.utils.GBUtils
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.MobileAds
+import vn.android.thn.commons.view.AdModNativeView
 
 
 class ListVideoPlayAdapter(private val mContext: Context, var list: ArrayList<RealmVideo>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -42,27 +44,30 @@ class ListVideoPlayAdapter(private val mContext: Context, var list: ArrayList<Re
     var downloadListener: DownloadVideoListener? = null
     var showDescription = false
     var headerData: RealmVideo? = null
-    var adView: AdView
+    var ad_native_view:AdModNativeView? = null
     init {
-        adView = AdView(mContext)
-        adView!!.setAdSize(AdSize.BANNER);
-        adView!!.setAdUnitId(mContext.getString(R.string.AD_UNIT_ID))
+
+        MobileAds.initialize(mContext, "ca-app-pub-2223782486826233~5811460961")
     }
     fun loadAD(){
-        if (App.getInstance().isDebugMode()) {
-            adView!!.loadAd(AdRequest.Builder().addTestDevice("BCB68136B98CF003B0B4965411508000").build())
-        } else {
-            adView!!.loadAd(AdRequest.Builder().build())
+        if (ad_native_view!=null) {
+            ad_native_view!!.refreshAd(mContext.getString(R.string.Native_ad))
         }
     }
     fun resumeAD(){
-        adView.resume()
+        if (ad_native_view !=null) {
+            ad_native_view!!.refreshAd(mContext.getString(R.string.Native_ad))
+        }
     }
     fun pauseAD(){
-        adView.pause()
+        if (ad_native_view !=null) {
+            ad_native_view!!.onDestroy()
+        }
     }
     fun destroyAD(){
-        adView.destroy()
+        if (ad_native_view !=null) {
+            ad_native_view!!.onDestroy()
+        }
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         if (viewType == TYPE_HEADER) {
@@ -125,12 +130,11 @@ class ListVideoPlayAdapter(private val mContext: Context, var list: ArrayList<Re
         lateinit var row_description:View
         lateinit var txt_description:TextView
         lateinit var btn_download:ImageView
-        var ad_card_view: FrameLayout
+
         var img_follow:ImageView
         var btn_like:ImageView
         var btn_ignore:ImageView
         init {
-            ad_card_view = itemView.findViewById(R.id.ad_card_view)
             row_title = itemView.findViewById(R.id.row_title)
             title = itemView.findViewById(R.id.title)
             img_follow  = itemView.findViewById(R.id.img_follow)
@@ -142,6 +146,7 @@ class ListVideoPlayAdapter(private val mContext: Context, var list: ArrayList<Re
             row_description = itemView.findViewById(R.id.row_description)
             txt_description = itemView.findViewById(R.id.txt_description)
             btn_like = itemView.findViewById(R.id.btn_like)
+            ad_native_view = itemView.findViewById(R.id.ad_native_view)
             row_title.setOnClickListener {
                 showDescription = !showDescription
                 if (showDescription){
@@ -200,13 +205,11 @@ class ListVideoPlayAdapter(private val mContext: Context, var list: ArrayList<Re
 
         }
         fun bindData() {
-            if (ad_card_view.childCount > 0) {
-                ad_card_view.removeAllViews()
-            }
-            ad_card_view.addView(adView)
+//            if (list.size <= 31){
+//                loadAD()
+//            }
             title.text = headerData!!.title
             txt_channel_title.text = headerData!!.channelTitle
-
             ImageLoader.loadImageCricle(img_channel,headerData!!.channelImage)
             val sequence = Html.fromHtml(if (GBUtils.isEmpty(headerData!!.description)) "" else headerData!!.description)
             val strBuilder = SpannableStringBuilder(sequence)
@@ -280,14 +283,16 @@ class ListVideoPlayAdapter(private val mContext: Context, var list: ArrayList<Re
             txt_info = itemView.findViewById(R.id.txt_info)
             itemView.setOnClickListener {
                 if (listener!= null){
-                    listener!!.onItemClick(list.get(layoutPosition-1),layoutPosition-1)
+                    if((layoutPosition-1)>=0  && (layoutPosition-1) < list.size) {
+                        listener!!.onItemClick(list.get(layoutPosition - 1), layoutPosition - 1)
+                    }
                 }
             }
             processPlay = itemView.findViewById(R.id.processPlay)
-            var layoutParams =  itemView.layoutParams
-            layoutParams.height = App.getInstance().heightRowSmall()
-            itemView.layoutParams = layoutParams
-            itemView.requestLayout()
+//            var layoutParams =  itemView.layoutParams
+//            layoutParams.height = App.getInstance().heightRowSmall()
+//            itemView.layoutParams = layoutParams
+//            itemView.requestLayout()
         }
         fun bindData(obj:RealmVideo){
             txt_name.text = obj.title
